@@ -1,26 +1,123 @@
 {% extends "base.html" %} {% block content %}
-
-<h2>Restaurantes Disponíveis</h2>
-<p>Escolha um dos nossos parceiros para ver o cardápio.</p>
-
-<hr />
-
-<div>
-  {% if not restaurantes %}
-  <p>Nenhum restaurante registado ainda.</p>
-  {% else %} {% for rest in restaurantes %}
-  <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
-    <h3>
-      <a href="{{ url_for('auth.view_restaurant', restaurante_id=rest.id) }}">
-        {{ rest.nome_fantasia }}
-      </a>
-    </h3>
-    <p>
-      Taxa de entrega: R$ {{ "%.2f"|format(rest.taxa_entrega) }}<br />
-      Tempo médio: {{ rest.tempo_medio_entrega }} min
+<div
+  class="row text-center my-5 p-5 bg-light rounded-3"
+  style="background-color: var(--purple-bg) !important"
+>
+  <div class="col-12">
+    <h1
+      class="display-4 fw-bolder"
+      id="animated-title"
+      data-fulltext="YummyGo: Seu delivery favorito em poucos cliques"
+      style="color: var(--purple-dark)"
+    >
+      YummyGo: Seu delivery favorito em poucos cliques
+    </h1>
+    <p class="lead mb-4">
+      Conectando aos sabores mais incríveis da sua cidade, com rapidez e
+      facilidade.
     </p>
+
+    <div class="input-group mx-auto" style="max-width: 600px">
+      <span class="input-group-text"
+        ><i class="fas fa-map-marker-alt"></i
+      ></span>
+      <input
+        type="text"
+        class="form-control form-control-lg"
+        placeholder="Digite seu endereço de entrega"
+      />
+      <button class="btn btn-purple btn-lg" type="button">Buscar</button>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-center my-5" style="color: var(--purple-dark)">
+  Navegue pelas <span style="color: var(--purple-light)">Categorias</span>
+</h2>
+
+<div class="row justify-content-center mb-5">
+  {% set categories = [ ('Pizza', 'fa-pizza-slice'), ('Hamburguer',
+  'fa-hamburger'), ('Japonesa', 'fa-fish'), ('Saudável', 'fa-leaf'), ('Doces',
+  'fa-ice-cream'), ('Bebidas', 'fa-cocktail') ] %} {% for name, icon_class in
+  categories %}
+  <div class="col-md-2 col-4 mb-3">
+    <a href="#" class="text-decoration-none text-dark">
+      <div
+        class="card p-3 text-center shadow-sm h-100"
+        style="
+          border-radius: 15px;
+          border-color: #e1bee7;
+          border: 2px solid var(--purple-light);
+        "
+      >
+        <i
+          class="fas {{ icon_class }} fa-3x mb-2"
+          style="color: var(--purple-light)"
+        ></i>
+        <p class="mt-2 mb-0 fw-bold">{{ name }}</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="text-center my-5" style="color: var(--purple-dark)">
+  Descubra <span style="color: var(--purple-light)">Restaurantes Próximos</span>
+</h2>
+
+<div class="row">
+  {% if not restaurantes %}
+  <div class="col-12">
+    <p class="alert alert-info">Nenhum restaurante registado ainda.</p>
+  </div>
+  {% else %} {% for rest in restaurantes %}
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-lg h-100" style="border-radius: 10px">
+      <div
+        style="
+          background-color: var(--purple-bg);
+          height: 150px;
+          border-top-left-radius: 10px;
+          border-top-right-radius: 10px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 3rem;
+          color: var(--purple-dark);
+        "
+      >
+        <i class="fas fa-utensils"></i>
+        <span class="badge bg-danger position-absolute m-2 top-0 start-0 fs-6">
+          {% if rest.taxa_entrega == 0 %}GRÁTIS{% else %}R$ {{
+          "%.2f"|format(rest.taxa_entrega) }}{% endif %}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <h5 class="card-title">
+          <a
+            href="{{ url_for('auth.view_restaurant', restaurante_id=rest.id) }}"
+            class="text-decoration-none text-dark fw-bold"
+            >{{ rest.nome_fantasia }}</a
+          >
+        </h5>
+        <p class="card-text text-muted small">
+          Sabor autêntico, direto na sua casa.
+        </p>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <span class="text-warning small fw-bold"> ★★★★★ (4.8) </span>
+          <span
+            class="badge bg-success"
+            style="background-color: var(--purple-light) !important"
+            >{{ rest.tempo_medio_entrega }} min</span
+          >
+        </div>
+      </div>
+    </div>
   </div>
   {% endfor %} {% endif %}
 </div>
 
-{% endblock %}
+{% endblock content %}

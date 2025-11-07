@@ -76,3 +76,40 @@ function clearAddressForm() {
   document.getElementById('cidade').value = ''
   document.getElementById('uf').value = ''
 }
+
+// --- FUNÇÃO TYPEWRITER ---
+function typeWriter(element, text, speed) {
+  let i = 0
+  element.innerHTML = ''
+
+  function typing() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i)
+      i++
+      setTimeout(typing, speed)
+    } else {
+      // Quando terminar, remove a classe para garantir que o texto fica visível
+      element.classList.remove('typing-cursor')
+    }
+  }
+  typing()
+}
+
+// --- FUNÇÃO DE INICIALIZAÇÃO ---
+function initAnimations() {
+  const titleElement = document.getElementById('animated-title')
+
+  if (titleElement) {
+    // O fullText é lido do atributo data-fulltext no HTML
+    const fullText = titleElement.getAttribute('data-fulltext')
+
+    // Adiciona um cursor piscando (simulação CSS)
+    titleElement.classList.add('typing-cursor')
+
+    // Aplica a animação
+    typeWriter(titleElement, fullText, 50)
+  }
+}
+
+// 2. Chama a função de inicialização assim que o script é lido
+document.addEventListener('DOMContentLoaded', initAnimations)

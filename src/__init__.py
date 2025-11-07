@@ -7,6 +7,7 @@ e onde as extensões e blueprints são registados.
 
 from flask import Flask
 from .config import Config
+import datetime
 from .extensions import db, migrate, bcrypt, login_manager, mail, oauth
 
 def create_app(config_class=Config):
@@ -19,6 +20,8 @@ def create_app(config_class=Config):
     # 1. Cria a instância da App
     app = Flask(__name__)
     
+    app.jinja_env.globals.update(now=datetime.datetime.now)
+
     # 2. Carrega a Configuração
     # Carrega as configurações a partir da classe 'Config' (definida em config.py)
     app.config.from_object(config_class)

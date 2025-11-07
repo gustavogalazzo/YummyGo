@@ -1,0 +1,54 @@
+/* Definições de Cores e Tipografia (Identidade Visual YummyGo) */
+:root {
+    --purple-dark: #4a148c; /* Roxo Escuro Principal */
+    --purple-light: #7b1fa2; /* Roxo Claro de Destaque */
+    --purple-bg: #f3e5f5; /* Fundo Levemente Roxo */
+    --font-size-lg: 2.5rem;
+}
+
+/* 1. Mudar a cor de fundo do Header (Navbar) */
+.navbar.bg-warning {
+    background-color: var(--purple-dark) !important;
+}
+
+/* 2. Mudar a cor do texto do Header */
+.navbar .nav-link, .navbar-brand {
+    color: white !important;
+}
+
+/* Mudar a cor do destaque da logo (se houver) */
+.navbar-brand .text-danger {
+    color: var(--purple-light) !important;
+}
+
+/* 3. Estilização Roxo (Para o botão de Busca, etc) */
+.btn-purple {
+    background-color: var(--purple-light);
+    border-color: var(--purple-light);
+    color: white;
+}
+.btn-purple:hover {
+    background-color: #5d167a;
+    border-color: #5d167a;
+}
+
+/* --- COMPLEMENTO PARA TYPEWRITER --- */
+/* Remove a animação original (se estiver ativa) */
+.animated-text {
+    animation: none !important;
+}
+
+/* Cria o cursor piscando */
+.typing-cursor {
+    border-right: .15em solid var(--purple-dark); /* Cursor como um pipe */
+    white-space: nowrap; /* Não quebra a linha */
+    overflow: hidden; /* Esconde o texto que ainda não foi digitado */
+    animation: 
+      blink-caret .75s step-end infinite; /* Simula o piscar */
+}
+
+/* Keyframes para o Piscar do Cursor */
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: var(--purple-dark); }
+}

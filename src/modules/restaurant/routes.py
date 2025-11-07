@@ -3,7 +3,7 @@ Módulo do Restaurante (Restaurant) - Rotas
 
 Define as rotas para /portal/ (dashboard) e /portal/registar
 """
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from src.modules.restaurant.forms import RestaurantRegistrationForm, CategoryForm, ProductForm, OrderStatusForm
 from src.extensions import db
@@ -207,7 +207,7 @@ def manage_orders():
         Pedido.restaurante_id == restaurante.id,
         Pedido.status.notin_(['Concluído', 'Cancelado'])
     ).order_by(Pedido.data_criacao.desc()).all()
-    
+
     if form.validate_on_submit():
         # Lógica POST: Atualizar o Status
         
@@ -216,7 +216,7 @@ def manage_orders():
         pedido = Pedido.query.get(pedido_id)
         
         if pedido and pedido.restaurante_id == restaurante.id:
-            # Encontra o índice do status atual no nosso fluxo
+            # Encontra o índice do status atual no nosso fluxo (STATUS_FLUXO)
             try:
                 current_index = STATUS_FLUXO.index(pedido.status)
                 
@@ -228,7 +228,6 @@ def manage_orders():
                 else:
                     flash('Este pedido já está no status final (Concluído).', 'info')
             except ValueError:
-                # O status não estava no fluxo (ex: 'Pendente de Pagamento' ou 'Cancelado')
                 flash('Não é possível atualizar o status deste pedido.', 'danger')
                 
         return redirect(url_for('restaurant.manage_orders'))
