@@ -1,70 +1,80 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Meu Portal - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
-
-    <h2>Meu Portal: {{ current_user.restaurante.nome_fantasia }}</h2>
-    <p>
-      Bem-vindo ao seu painel de controlo. Aqui pode gerir todo o seu
-      estabelecimento.
+{% extends "base.html" %} {% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Portal de Gestão: {{ current_user.restaurante.nome_fantasia }}
+    </h2>
+    <p class="lead text-muted">
+      Bem-vindo ao seu painel. Use as ferramentas abaixo para gerir seu cardápio
+      e pedidos.
     </p>
-
     <hr />
 
-    <h3>Ferramentas de Gestão</h3>
+    <h3 class="mt-4 mb-3" style="color: var(--purple-light)">
+      Ferramentas Principais
+    </h3>
 
-    <nav>
-      <ul style="list-style: none; padding: 0">
-        <li style="margin: 10px 0">
-          <a href="{{ url_for('restaurant.manage_menu') }}">
-            <strong>Gerir Cardápio</strong>
-          </a>
-          <p style="margin: 0; color: #555">
-            Adicione, edite ou apague categorias e produtos.
-          </p>
-        </li>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <a
+          href="{{ url_for('restaurant.manage_menu') }}"
+          class="text-decoration-none"
+        >
+          <div
+            class="card shadow-sm h-100 p-3"
+            style="border: 2px solid var(--purple-light)"
+          >
+            <div class="card-body">
+              <h5 class="card-title fw-bold text-dark">
+                <i class="fas fa-utensils me-2"></i> Gerir Cardápio
+              </h5>
+              <p class="card-text text-muted">
+                Adicione, edite e organize categorias e produtos.
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
 
-        <li style="margin: 10px 0">
-          <a href="{{ url_for('restaurant.manage_orders') }}">
-            <strong>Ver e Gerir Pedidos Recebidos</strong>
-          </a>
-          <p style="margin: 0; color: #555">
-            Acompanhe novos pedidos e atualize o status.
-          </p>
-        </li>
+      <div class="col-md-4 mb-4">
+        <a
+          href="{{ url_for('restaurant.manage_orders') }}"
+          class="text-decoration-none"
+        >
+          <div
+            class="card shadow-sm h-100 p-3"
+            style="border: 2px solid var(--purple-dark)"
+          >
+            <div class="card-body">
+              <h5 class="card-title fw-bold text-dark">
+                <i class="fas fa-receipt me-2"></i> Pedidos Recebidos
+              </h5>
+              <p class="card-text text-muted">
+                Acompanhe novos pedidos e avance o status.
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
 
-        <li style="margin: 10px 0">
-          <a href="#">
-            <strong>Ver Pedidos Recebidos</strong>
-          </a>
-          <p style="margin: 0; color: #555">
-            Acompanhe os pedidos em tempo real (Em construção).
-          </p>
-        </li>
-
-        <li style="margin: 10px 0">
-          <a href="#">
-            <strong>Informações do Estabelecimento</strong>
-          </a>
-          <p style="margin: 0; color: #555">
-            Atualize o seu CNPJ, taxa de entrega, logo, etc. (Em construção).
-          </p>
-        </li>
-      </ul>
-    </nav>
-
-    <hr />
-    <p>
-      <a href="{{ url_for('auth.home') }}"
-        >Voltar à Página Inicial do YummyGo</a
-      >
-    </p>
-  </body>
-</html>
+      <div class="col-md-4 mb-4">
+        <a
+          href="{{ url_for('restaurant.manage_info') }}"
+          class="text-decoration-none"
+        >
+          <div class="card shadow-sm h-100 p-3">
+            <div class="card-body">
+              <h5 class="card-title fw-bold text-dark">
+                <i class="fas fa-cog me-2"></i> Informações do Estabelecimento
+              </h5>
+              <p class="card-text text-muted">
+                Atualize o seu CNPJ, taxa de entrega, logo, etc.
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

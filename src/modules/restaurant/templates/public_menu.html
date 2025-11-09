@@ -1,49 +1,70 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Cardápio de {{ restaurante.nome_fantasia }} - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %} {% block content %}
 
-    <h2>Cardápio de: {{ restaurante.nome_fantasia }}</h2>
-    <p>Taxa de entrega: R$ {{ "%.2f"|format(restaurante.taxa_entrega) }}</p>
-    <hr />
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <h2 class="display-5 fw-bold mb-3" style="color: var(--purple-dark)">
+      Cardápio de: {{ restaurante.nome_fantasia }}
+    </h2>
+    <p class="lead mb-4 text-muted">
+      <i class="fas fa-motorcycle me-1"></i> Taxa de entrega: R$ {{
+      "%.2f"|format(restaurante.taxa_entrega) }} |
+      <i class="fas fa-clock me-1"></i> {{ restaurante.tempo_medio_entrega }}
+      min
+    </p>
 
     {% if not restaurante.categorias %}
-    <p>Este restaurante ainda não publicou o seu cardápio.</p>
+    <div class="alert alert-warning">
+      Este restaurante ainda não publicou o seu cardápio.
+    </div>
     {% else %} {% for categoria in restaurante.categorias %}
-    <div style="background-color: #f4f4f4; padding: 10px; margin-bottom: 15px">
-      <h4 style="margin-top: 0">{{ categoria.nome }}</h4>
+    <div class="mb-5">
+      <h3 class="fw-bold mb-3" style="color: var(--purple-light)">
+        {{ categoria.nome }}
+      </h3>
 
-      <ul style="list-style: none; padding-left: 10px">
+      <div class="row">
         {% for produto in categoria.produtos %} {% if produto.disponivel %}
-        <li style="border-bottom: 1px solid #ddd; padding: 5px 0">
-          <strong>{{ produto.nome }}</strong> - R$ {{
-          "%.2f"|format(produto.preco) }}
-          <p style="margin: 2px 0; color: #555">{{ produto.descricao }}</p>
+        <div class="col-md-6 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div
+              class="card-body d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <h5 class="card-title fw-bold">{{ produto.nome }}</h5>
+                <p class="card-text text-muted small">
+                  {{ produto.descricao }}
+                </p>
+                <p class="fw-bold fs-5 mb-0" style="color: var(--purple-dark)">
+                  R$ {{ "%.2f"|format(produto.preco) }}
+                </p>
+              </div>
 
-          <form
-            method="POST"
-            action="{{ url_for('auth.add_to_cart', produto_id=produto.id) }}"
-            style="display: inline"
-          >
-            <input type="submit" value="Adicionar ao Carrinho" />
-          </form>
-        </li>
+              <form
+                method="POST"
+                action="{{ url_for('auth.add_to_cart', produto_id=produto.id) }}"
+                style="min-width: 120px"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-purple w-100"
+                  style="background-color: var(--purple-dark)"
+                >
+                  Adicionar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
         {% endif %} {% endfor %}
-      </ul>
+      </div>
     </div>
     {% endfor %} {% endif %}
-    <hr />
-    <p>
+
+    <p class="text-center mt-5">
       <a href="{{ url_for('auth.home') }}"
-        >Voltar para a lista de restaurantes</a
+        >← Voltar para a lista de restaurantes</a
       >
     </p>
-  </body>
-</html>
+  </div>
+</div>
+{% endblock content %}

@@ -1,59 +1,76 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Meu Perfil - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Meu Perfil
+    </h2>
 
-    <h2>Meu Perfil</h2>
-    <p>
-      Olá, {{ current_user.nome_completo }}. Aqui pode atualizar os seus dados.
-    </p>
-    <hr />
-
-    <form method="POST" action="">
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.nome_completo.label }}<br />
-        {{ form.nome_completo(size=30) }} {% for error in
-        form.nome_completo.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.email.label }}<br />
-        {{ form.email(size=30) }} {% for error in form.email.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.telefone.label }}<br />
-        {{ form.telefone(size=20) }} {% for error in form.telefone.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>{{ form.submit() }}</p>
-    </form>
-
-    <hr />
-    <p>
-      <a href="{{ url_for('client.manage_addresses') }}"
-        >Gerir os meus Endereços</a
+    <div class="card shadow-sm mb-4">
+      <div
+        class="card-header bg-purple text-white"
+        style="background-color: var(--purple-light) !important"
       >
-    </p>
-    <p>
-      <a href="{{ url_for('client.order_history') }}"
-        >Ver Histórico de Pedidos</a
+        <h5 class="mb-0 fw-bold">Dados Pessoais</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.nome_completo.label(class="form-label") }} {{
+            form.nome_completo(class="form-control") }} {% for error in
+            form.nome_completo.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              {{ form.email.label(class="form-label") }} {{
+              form.email(class="form-control") }} {% for error in
+              form.email.errors %}
+              <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6 mb-3">
+              {{ form.telefone.label(class="form-label") }} {{
+              form.telefone(class="form-control") }} {% for error in
+              form.telefone.errors %}
+              <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-grid mt-3">
+            {{ form.submit(class="btn btn-purple", style="background-color:
+            var(--purple-dark);") }}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <h3 class="h5 mt-5 mb-3" style="color: var(--purple-dark)">
+      Gestão de Conta
+    </h3>
+    <div class="list-group">
+      <a
+        href="{{ url_for('client.manage_addresses') }}"
+        class="list-group-item list-group-item-action"
       >
-    </p>
-    <p><a href="{{ url_for('auth.home') }}">Voltar à Página Inicial</a></p>
-  </body>
-</html>
+        <i
+          class="fas fa-map-marker-alt me-2"
+          style="color: var(--purple-light)"
+        ></i>
+        Gerir Endereços
+      </a>
+      <a
+        href="{{ url_for('client.order_history') }}"
+        class="list-group-item list-group-item-action"
+      >
+        <i class="fas fa-history me-2" style="color: var(--purple-light)"></i>
+        Histórico de Pedidos
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock content %}

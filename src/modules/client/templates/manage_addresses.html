@@ -1,93 +1,123 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Meus Endereços - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Gerir Meus Endereços
+    </h2>
 
-    <h2>Meus Endereços</h2>
-    <hr />
-
-    <h3>Endereços Salvos</h3>
+    <h3 class="h4 mb-3" style="color: var(--purple-light)">Endereços Salvos</h3>
 
     {% if not enderecos %}
-    <p>Você ainda não tem endereços salvos.</p>
+    <div class="alert alert-info">
+      Você ainda não tem endereços salvos. Use o formulário abaixo para
+      adicionar.
+    </div>
     {% else %}
-    <ul style="list-style: none; padding: 0">
+    <div class="row">
       {% for endereco in enderecos %}
-      <li style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
-        <strong>{{ endereco.rua }}, {{ endereco.numero }}</strong><br />
-        {{ endereco.bairro }}, {{ endereco.cidade }} - {{ endereco.estado }}<br />
-        CEP: {{ endereco.cep }} {% if endereco.complemento %}<br />Compl: {{
-        endereco.complemento }}{% endif %}
-
-        <form
-          method="POST"
-          action="{{ url_for('client.delete_address', endereco_id=endereco.id) }}"
-          style="display: inline; margin-left: 10px"
+      <div class="col-md-6 mb-3">
+        <div
+          class="card p-3 shadow-sm h-100"
+          style="border: 1px solid var(--purple-light)"
         >
-          <input
-            type="submit"
-            value="Apagar"
-            onclick="return confirm('Tem a certeza que quer apagar este endereço?')"
-          />
-        </form>
-      </li>
+          <div class="card-body p-2">
+            <h5 class="card-title fw-bold">
+              {{ endereco.rua }}, {{ endereco.numero }}
+            </h5>
+            <p class="card-text mb-1">
+              {{ endereco.bairro }}, {{ endereco.cidade }} - {{ endereco.estado
+              }}
+            </p>
+            <p class="card-text text-muted small">
+              CEP: {{ endereco.cep }} {% if endereco.complemento %}({{
+              endereco.complemento }}){% endif %}
+            </p>
+
+            <form
+              method="POST"
+              action="{{ url_for('client.delete_address', endereco_id=endereco.id) }}"
+              style="display: inline"
+              class="mt-2"
+            >
+              <button
+                type="submit"
+                class="btn btn-sm btn-outline-danger"
+                onclick="return confirm('Tem a certeza que quer apagar este endereço?')"
+              >
+                <i class="fas fa-trash-alt"></i> Apagar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
     {% endif %}
 
-    <hr />
+    <hr class="my-5" />
 
-    <h3>Adicionar Novo Endereço</h3>
+    <h3 class="h4 mb-3" style="color: var(--purple-dark)">
+      Adicionar Novo Endereço (ViaCEP Ativo)
+    </h3>
+
     <form method="POST" action="">
       {{ form.hidden_tag() }}
-      <p>
-        {{ form.cep.label }}<br />
-        {{ form.cep(size=10, id="cep") }}
-      </p>
 
-      <p>
-        {{ form.rua.label }}<br />
-        {{ form.rua(size=40, id="rua") }}
-      </p>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="cep" class="form-label">{{ form.cep.label }}</label>
+          {{ form.cep(class="form-control", id="cep", placeholder="Apenas
+          números") }} {% for error in form.cep.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
 
-      <p>
-        {{ form.bairro.label }}<br />
-        {{ form.bairro(size=30, id="bairro") }}
-      </p>
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label for="rua" class="form-label">{{ form.rua.label }}</label>
+          {{ form.rua(class="form-control", id="rua") }}
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="numero" class="form-label">{{ form.numero.label }}</label>
+          {{ form.numero(class="form-control", id="numero") }}
+        </div>
+      </div>
 
-      <p>
-        {{ form.cidade.label }}<br />
-        {{ form.cidade(size=30, id="cidade") }}
-      </p>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="bairro" class="form-label">{{ form.bairro.label }}</label>
+          {{ form.bairro(class="form-control", id="bairro") }}
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="complemento" class="form-label"
+            >{{ form.complemento.label }}</label
+          >
+          {{ form.complemento(class="form-control", id="complemento",
+          placeholder="Apto, Bloco, etc.") }}
+        </div>
+      </div>
 
-      <p>
-        {{ form.estado.label }}<br />
-        {{ form.estado(size=3, id="uf") }}
-      </p>
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label for="cidade" class="form-label">{{ form.cidade.label }}</label>
+          {{ form.cidade(class="form-control", id="cidade") }}
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="uf" class="form-label">{{ form.estado.label }}</label>
+          {{ form.estado(class="form-control", id="uf", placeholder="Ex: SP") }}
+        </div>
+      </div>
 
-      <p>
-        {{ form.numero.label }}<br />
-        {{ form.numero(size=10) }}
-      </p>
-
-      <p>
-        {{ form.complemento.label }}<br />
-        {{ form.complemento(size=30) }}
-      </p>
-
-      <p>{{ form.submit() }}</p>
+      <div class="d-grid mt-4">
+        {{ form.submit(class="btn btn-purple btn-lg", style="background-color:
+        var(--purple-dark);") }}
+      </div>
     </form>
 
-    <hr />
-    <p><a href="{{ url_for('client.profile') }}">Voltar ao Perfil</a></p>
-
-    <script src="{{ url_for('static', filename='js/address_form.js') }}"></script>
-  </body>
-</html>
+    <p class="text-center mt-3">
+      <a href="{{ url_for('client.profile') }}">← Voltar ao Meu Perfil</a>
+    </p>
+  </div>
+</div>
+{% endblock content %}

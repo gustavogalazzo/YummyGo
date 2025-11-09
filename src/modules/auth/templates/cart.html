@@ -1,66 +1,94 @@
 {% extends "base.html" %} {% block content %}
 
-<h2>Meu Carrinho de Compras</h2>
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Meu Carrinho de Compras
+    </h2>
 
-{% if not itens_carrinho %}
-<p>O seu carrinho está vazio.</p>
-<p><a href="{{ url_for('auth.home') }}">Ver restaurantes</a></p>
-{% else %}
-
-<table
-  border="1"
-  style="width: 100%; border-collapse: collapse"
-  cellpadding="5"
->
-  <thead>
-    <tr>
-      <th>Produto</th>
-      <th>Preço Unit.</th>
-      <th>Quantidade</th>
-      <th>Subtotal</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in itens_carrinho %}
-    <tr>
-      <td>{{ item.nome }}</td>
-      <td>R$ {{ "%.2f"|format(item.preco) }}</td>
-      <td>{{ item.quantidade }}</td>
-      <td>R$ {{ "%.2f"|format(item.subtotal) }}</td>
-      <td>
-        <form
-          method="POST"
-          action="{{ url_for('auth.remove_from_cart', produto_id=item.id) }}"
+    {% if not itens_carrinho %}
+    <div class="alert alert-info text-center">
+      O seu carrinho está vazio. Comece a comprar!
+      <p class="mt-2">
+        <a href="{{ url_for('auth.home') }}" class="alert-link"
+          >Ver restaurantes</a
         >
-          <input type="submit" value="Remover" />
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="3" style="text-align: right">
-        <strong>Total dos Produtos:</strong>
-      </td>
-      <td colspan="2">
-        <strong>R$ {{ "%.2f"|format(total_carrinho) }}</strong>
-      </td>
-    </tr>
-  </tfoot>
-</table>
+      </p>
+    </div>
+    {% else %}
 
-<hr />
+    <div class="card shadow-lg mb-4">
+      <div
+        class="card-header bg-purple text-white"
+        style="background-color: var(--purple-dark) !important"
+      >
+        <h5 class="mb-0 fw-bold">
+          Itens de {{ restaurante_id }} (Restaurante ID)
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th class="text-end">Preço Unit.</th>
+              <th class="text-center">Quantidade</th>
+              <th class="text-end">Subtotal</th>
+              <th class="text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in itens_carrinho %}
+            <tr>
+              <td>{{ item.nome }}</td>
+              <td class="text-end">R$ {{ "%.2f"|format(item.preco) }}</td>
+              <td class="text-center">{{ item.quantidade }}</td>
+              <td class="text-end">R$ {{ "%.2f"|format(item.subtotal) }}</td>
+              <td class="text-center">
+                <form
+                  method="POST"
+                  action="{{ url_for('auth.remove_from_cart', produto_id=item.id) }}"
+                  style="display: inline"
+                >
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold table-light">
+              <td colspan="3" class="text-end">Total dos Produtos:</td>
+              <td colspan="2" class="text-end">
+                R$ {{ "%.2f"|format(total_carrinho) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
 
-<p>
-  <a href="{{ url_for('auth.view_restaurant', restaurante_id=restaurante_id) }}"
-    >Adicionar mais itens</a
-  >
-</p>
+    <div class="d-flex justify-content-between align-items-center">
+      <p class="mt-2">
+        <a
+          href="{{ url_for('auth.view_restaurant', restaurante_id=restaurante_id) }}"
+          >← Adicionar mais itens</a
+        >
+      </p>
 
-<p style="font-size: 1.2em; font-weight: bold">
-  <a href="{{ url_for('auth.checkout') }}">Ir para o Checkout</a>
-</p>
+      <a
+        href="{{ url_for('auth.checkout') }}"
+        class="btn btn-lg btn-success fw-bold"
+        style="background-color: var(--purple-light) !important"
+      >
+        <i class="fas fa-shopping-cart me-2"></i> Ir para o Checkout
+      </a>
+    </div>
 
-{% endif %} {% endblock %}
+    {% endif %}
+  </div>
+</div>
+
+{% endblock content %}

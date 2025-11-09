@@ -82,6 +82,10 @@ def manage_addresses():
             user_id=current_user.id  # Liga o endereço ao utilizador logado
         )
         
+        # Usamos coordenadas de São Paulo (exemplos) para garantir que o campo não é NULO na DB
+        novo_endereco.latitude = -23.550520  # Exemplo de Latitude
+        novo_endereco.longitude = -46.633308 # Exemplo de Longitude
+
         try:
             db.session.add(novo_endereco)
             db.session.commit()

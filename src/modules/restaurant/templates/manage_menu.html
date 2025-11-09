@@ -1,123 +1,158 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Meu Cardápio - YummyGo</title>
-  </head>
-  <body style="display: flex; gap: 20px">
-    <main style="flex: 2">
-      <h2>Meu Cardápio</h2>
+{% extends "base.html" %} {% block content %}
+<h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+  Gerir Cardápio ({{ current_user.restaurante.nome_fantasia }})
+</h2>
 
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
-      <div class="flash-{{ category }}">{{ message }}</div>
-      {% endfor %} {% endif %} {% endwith %}
+<div class="row">
+  <div class="col-md-8">
+    <h3 class="h4 mb-3" style="color: var(--purple-light)">
+      Categorias e Produtos Salvos
+    </h3>
 
-      <hr />
-
-      <h3>Categorias e Produtos Salvos</h3>
-
-      {% if not categorias %}
-      <p>Você ainda não tem categorias. Adicione uma ao lado.</p>
-      {% else %} {% for categoria in categorias %}
+    {% if not categorias %}
+    <div class="alert alert-info">
+      Adicione uma categoria no painel ao lado para começar.
+    </div>
+    {% else %} {% for categoria in categorias %}
+    <div
+      class="card mb-4 shadow-sm"
+      style="border-top: 5px solid var(--purple-dark)"
+    >
       <div
-        style="background-color: #f4f4f4; padding: 10px; margin-bottom: 15px"
+        class="card-header d-flex justify-content-between align-items-center bg-light"
       >
-        <h4
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
+        <h5 class="mb-0 fw-bold">
+          {{ categoria.nome }} ({{ categoria.produtos | length }})
+        </h5>
+
+        <form
+          method="POST"
+          action="{{ url_for('restaurant.delete_category', categoria_id=categoria.id) }}"
+          style="display: inline"
         >
-          <span>{{ categoria.nome }}</span>
+          <button
+            type="submit"
+            class="btn btn-sm btn-outline-danger"
+            onclick="return confirm('ATENÇÃO: Apagar esta categoria também apagará TODOS os produtos dentro dela. Tem a certeza?')"
+          >
+            <i class="fas fa-times"></i> Apagar
+          </button>
+        </form>
+      </div>
+
+      <ul class="list-group list-group-flush">
+        {% if not categoria.produtos %}
+        <li class="list-group-item text-muted">
+          Nenhum produto nesta categoria.
+        </li>
+        {% else %} {% for produto in categoria.produtos %}
+        <li
+          class="list-group-item d-flex justify-content-between align-items-start"
+        >
+          <div>
+            <div class="fw-bold">
+              {{ produto.nome }} - R$ {{ "%.2f"|format(produto.preco) }}
+            </div>
+            <div class="text-muted small">{{ produto.descricao }}</div>
+          </div>
+          <span
+            class="badge rounded-pill {% if produto.disponivel %}bg-success{% else %}bg-warning{% endif %}"
+          >
+            {{ "Disponível" if produto.disponivel else "Indisponível" }}
+          </span>
+
           <form
             method="POST"
-            action="{{ url_for('restaurant.delete_category', categoria_id=categoria.id) }}"
+            action="{{ url_for('restaurant.delete_product', produto_id=produto.id) }}"
             style="display: inline"
+            class="ms-3"
           >
-            <input
+            <button
               type="submit"
-              value="Apagar Categoria"
-              onclick="return confirm('ATENÇÃO: Apagar esta categoria também apagará TODOS os produtos dentro dela. Tem a certeza?')"
-            />
+              class="btn btn-sm btn-outline-secondary"
+              onclick="return confirm('Apagar {{ produto.nome }}?')"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
           </form>
-        </h4>
+        </li>
+        {% endfor %} {% endif %}
+      </ul>
+    </div>
+    {% endfor %} {% endif %}
+  </div>
 
-        <ul style="list-style: none; padding-left: 10px">
-          {% if not categoria.produtos %}
-          <li><em>Nenhum produto nesta categoria.</em></li>
-          {% else %} {% for produto in categoria.produtos %}
-          <li style="border-bottom: 1px solid #ddd; padding: 5px 0">
-            <strong>{{ produto.nome }}</strong> - R$ {{
-            "%.2f"|format(produto.preco) }}
-            <span style="color: gray">
-              ({{ "Disponível" if produto.disponivel else "Indisponível"
-              }})</span
-            >
-            <p style="margin: 2px 0; color: #555">{{ produto.descricao }}</p>
-
-            <form
-              method="POST"
-              action="{{ url_for('restaurant.delete_product', produto_id=produto.id) }}"
-              style="display: inline; margin-left: 10px"
-            >
-              <input
-                type="submit"
-                value="Apagar Produto"
-                onclick="return confirm('Tem a certeza que quer apagar este produto?')"
-              />
-            </form>
-          </li>
-          {% endfor %} {% endif %}
-        </ul>
-      </div>
-      {% endfor %} {% endif %}
-    </main>
-
-    <aside style="flex: 1; background-color: #eee; padding: 10px">
-      <h3>Adicionar Categoria</h3>
+  <div class="col-md-4">
+    <aside
+      class="p-3 shadow-lg rounded"
+      style="background-color: var(--purple-bg) !important"
+    >
+      <h3 class="h5 fw-bold mb-3" style="color: var(--purple-dark)">
+        Adicionar Categoria
+      </h3>
       <form method="POST" action="{{ url_for('restaurant.manage_menu') }}">
         {{ category_form.hidden_tag() }}
-        <p>
-          {{ category_form.nome.label }}<br />
-          {{ category_form.nome(size=30) }}
-        </p>
-        <p>{{ category_form.submit_category() }}</p>
+        <div class="mb-3">
+          <label class="form-label">{{ category_form.nome.label }}</label>
+          {{ category_form.nome(class="form-control") }}
+        </div>
+        <div class="d-grid mb-4">
+          {{ category_form.submit_category(class="btn btn-purple",
+          style="background-color: var(--purple-light);") }}
+        </div>
       </form>
 
       <hr />
 
       {% if categorias %}
-      <h3>Adicionar Produto</h3>
+      <h3 class="h5 fw-bold mb-3" style="color: var(--purple-dark)">
+        Adicionar Produto
+      </h3>
       <form method="POST" action="{{ url_for('restaurant.manage_menu') }}">
         {{ product_form.hidden_tag() }}
-        <p>
-          {{ product_form.categoria_id.label }}<br />
-          {{ product_form.categoria_id() }}
-        </p>
-        <p>
-          {{ product_form.nome.label }}<br />
-          {{ product_form.nome(size=30) }}
-        </p>
-        <p>
-          {{ product_form.descricao.label }}<br />
-          {{ product_form.descricao(rows=3, cols=30) }}
-        </p>
-        <p>
-          {{ product_form.preco.label }}<br />
-          {{ product_form.preco() }}
-        </p>
-        <p>
-          {{ product_form.disponivel() }} {{ product_form.disponivel.label }}
-        </p>
-        <p>{{ product_form.submit_product() }}</p>
+
+        <div class="mb-3">
+          <label class="form-label"
+            >{{ product_form.categoria_id.label }}</label
+          >
+          {{ product_form.categoria_id(class="form-select") }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ product_form.nome.label }}</label>
+          {{ product_form.nome(class="form-control") }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{{ product_form.descricao.label }}</label>
+          {{ product_form.descricao(class="form-control", rows=3) }}
+        </div>
+
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="form-label">{{ product_form.preco.label }}</label>
+            {{ product_form.preco(class="form-control", type="number",
+            step="0.01") }}
+          </div>
+          <div class="col-6 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              {{ product_form.disponivel(class="form-check-input") }} {{
+              product_form.disponivel.label(class="form-check-label") }}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid">
+          {{ product_form.submit_product(class="btn btn-purple",
+          style="background-color: var(--purple-dark);") }}
+        </div>
       </form>
       {% else %}
-      <p>
-        <em>Adicione uma categoria primeiro para poder adicionar produtos.</em>
-      </p>
+      <div class="alert alert-warning">
+        Adicione uma categoria para ver o formulário de produto.
+      </div>
       {% endif %}
     </aside>
-  </body>
-</html>
+  </div>
+</div>
+
+{% endblock content %}

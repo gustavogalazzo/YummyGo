@@ -1,59 +1,69 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Login - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div
+      class="card shadow-lg p-4"
+      style="border: 2px solid var(--purple-light)"
+    >
+      <h2 class="card-title text-center mb-4" style="color: var(--purple-dark)">
+        Aceder à Sua Conta
+      </h2>
 
-    <h2>Login - YummyGo</h2>
+      <form method="POST" action="">
+        {{ form.hidden_tag() }}
 
-    <form method="POST" action="">
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.login.label }}<br />
-        {{ form.login(size=30) }} {% for error in form.login.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
+        <div class="mb-3">
+          {{ form.login.label(class="form-label") }} {{
+          form.login(class="form-control", placeholder="E-mail ou Telefone") }}
+          {% for error in form.login.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.password.label(class="form-label") }} {{
+          form.password(class="form-control", placeholder="Senha") }} {% for
+          error in form.password.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3 form-check">
+          {{ form.remember_me(class="form-check-input") }} {{
+          form.remember_me.label(class="form-check-label") }}
+        </div>
+
+        <div class="d-grid gap-2 mb-3">
+          {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+          style="background-color: var(--purple-dark);") }}
+        </div>
+      </form>
+
+      <hr class="my-3" />
+
+      <div class="d-grid gap-2">
+        <a
+          href="{{ url_for('auth.google_login') }}"
+          class="btn btn-outline-danger"
+          >Entrar com Google</a
+        >
+        <a
+          href="{{ url_for('auth.facebook_login') }}"
+          class="btn btn-outline-primary"
+          >Entrar com Facebook</a
+        >
+        <a href="{{ url_for('auth.email_login') }}" class="btn btn-outline-dark"
+          >Entrar com código por E-mail</a
+        >
+        <a href="{{ url_for('auth.phone_login') }}" class="btn btn-outline-dark"
+          >Entrar com código por SMS</a
+        >
+      </div>
+
+      <p class="text-center mt-3">
+        Não tem uma conta? <a href="{{ url_for('auth.register') }}">Registo</a>.
       </p>
-
-      <p>
-        {{ form.password.label }}<br />
-        {{ form.password(size=20) }} {% for error in form.password.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-
-      <p>
-            {{ form.submit() }}
-        </p>
-        
-        <p>
-            <a href="{{ url_for('auth.google_login') }}">Entrar com Google</a>
-        </p>
-
-        <p>
-            <a href="{{ url_for('auth.facebook_login') }}">Entrar com Facebook</a>
-        </p>
-        <p>
-            <a href="{{ url_for('auth.email_login') }}">Entrar com código por e-mail</a>
-        </p>
-        <p>
-            <a href="{{ url_for('auth.phone_login') }}">Entrar com código por SMS</a>
-        </p>
-        </form>
-    
-    </form>
-    <hr />
-    <p>
-      Não tem uma conta?
-      <a href="{{ url_for('auth.register') }}">Crie uma aqui</a>.
-    </p>
-  </body>
-</html>
+    </div>
+  </div>
+</div>
+{% endblock content %}

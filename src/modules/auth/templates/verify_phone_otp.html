@@ -1,40 +1,43 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Verificar Código SMS - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
-
-    <h2>Verifique o seu Telemóvel</h2>
-    <p>
-      Enviámos um código SMS para <strong>{{ telefone }}</strong>. Por favor,
-      insira-o abaixo.
-    </p>
-
-    <form
-      method="POST"
-      action="{{ url_for('auth.verify_phone_otp', telefone=telefone) }}"
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div
+      class="card shadow-lg p-4 text-center"
+      style="border: 2px solid var(--purple-light)"
     >
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.otp_code.label }}<br />
-        {{ form.otp_code(size=10) }} {% for error in form.otp_code.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
+      <h2 class="card-title mb-3" style="color: var(--purple-dark)">
+        Verificar Código SMS
+      </h2>
+      <p class="text-muted">
+        Código enviado para <strong>{{ telefone }}</strong>. Insira-o abaixo
+        para continuar.
       </p>
 
-      <p>{{ form.submit() }}</p>
-    </form>
+      <form
+        method="POST"
+        action="{{ url_for('auth.verify_phone_otp', telefone=telefone) }}"
+      >
+        {{ form.hidden_tag() }}
 
-    <hr />
-    <p>
-      <a href="{{ url_for('auth.phone_login') }}">Reenviar código</a>
-      (funcionalidade futura)
-    </p>
-  </body>
-</html>
+        <div class="mb-3">
+          {{ form.otp_code.label(class="form-label visually-hidden") }} {{
+          form.otp_code(class="form-control form-control-lg text-center",
+          placeholder="Código de 6 dígitos", maxlength="6") }} {% for error in
+          form.otp_code.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid gap-2 mb-3">
+          {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+          style="background-color: var(--purple-dark);") }}
+        </div>
+      </form>
+
+      <p class="mt-3">
+        <a href="{{ url_for('auth.phone_login') }}">Reenviar código</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

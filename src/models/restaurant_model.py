@@ -41,6 +41,8 @@ class Endereco(db.Model):
     cidade = db.Column(db.String(100), nullable=False)
     estado = db.Column(db.String(2), nullable=False) # Ex: SP
     cep = db.Column(db.String(10), nullable=False)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
     
     # Chave Estrangeira (Foreign Key) para ligar ao User
     # (Um cliente pode ter vários endereços, um restaurante pode ter o seu)

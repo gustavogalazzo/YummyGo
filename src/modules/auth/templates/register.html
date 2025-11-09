@@ -1,68 +1,82 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Criar Conta - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div
+      class="card shadow-lg p-4"
+      style="border: 2px solid var(--purple-light)"
+    >
+      <h2 class="card-title text-center mb-4" style="color: var(--purple-dark)">
+        Criar Sua Conta YummyGo
+      </h2>
 
-    <h2>Criar Nova Conta YummyGo</h2>
+      <form method="POST" action="">
+        {{ form.hidden_tag() }}
 
-    <form method="POST" action="">
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.nome_completo.label }}<br />
-        {{ form.nome_completo(size=30) }} {% for error in
-        form.nome_completo.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
+        <div class="mb-3">
+          {{ form.nome_completo.label(class="form-label") }} {{
+          form.nome_completo(class="form-control", placeholder="Seu nome
+          completo") }} {% for error in form.nome_completo.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.email.label(class="form-label") }} {{
+          form.email(class="form-control", placeholder="seu.email@exemplo.com")
+          }} {% for error in form.email.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.telefone.label(class="form-label") }} {{
+          form.telefone(class="form-control", placeholder="(99) 99999-9999") }}
+          {% for error in form.telefone.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.password.label(class="form-label") }} {{
+          form.password(class="form-control", placeholder="Senha (mínimo 6
+          caracteres)") }} {% for error in form.password.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.confirm_password.label(class="form-label") }} {{
+          form.confirm_password(class="form-control", placeholder="Confirme sua
+          senha") }} {% for error in form.confirm_password.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid gap-2 mb-3">
+          {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+          style="background-color: var(--purple-dark);") }}
+        </div>
+      </form>
+
+      <hr class="my-3" />
+
+      <div class="d-grid gap-2">
+        <a
+          href="{{ url_for('auth.google_login') }}"
+          class="btn btn-outline-danger"
+          >Criar com Google</a
+        >
+        <a
+          href="{{ url_for('auth.facebook_login') }}"
+          class="btn btn-outline-primary"
+          >Criar com Facebook</a
+        >
+      </div>
+
+      <p class="text-center mt-3">
+        Já tem uma conta? <a href="{{ url_for('auth.login') }}">Faça Login</a>.
       </p>
-
-      <p>
-        {{ form.email.label }}<br />
-        {{ form.email(size=30) }} {% for error in form.email.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.telefone.label }}<br />
-        {{ form.telefone(size=20) }} {% for error in form.telefone.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.password.label }}<br />
-        {{ form.password(size=20) }} {% for error in form.password.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.confirm_password.label }}<br />
-        {{ form.confirm_password(size=20) }} {% for error in
-        form.confirm_password.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-            {{ form.submit() }}
-        </p>
-
-        <p>
-            <a href="{{ url_for('auth.google_login') }}">Registar com Google</a>
-        </p>
-        <p>
-            <a href="{{ url_for('auth.facebook_login') }}">Registar com Facebook</a>
-        </p>
-        </form>
-
-    </form>
-  </body>
-</html>
+    </div>
+  </div>
+</div>
+{% endblock content %}

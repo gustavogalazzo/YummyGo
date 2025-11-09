@@ -1,55 +1,70 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Seja um Parceiro - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
-
-    <h2>Seja um Parceiro YummyGo</h2>
-    <p>Preencha os dados do seu estabelecimento para começar a vender.</p>
-    <hr />
-
-    <form method="POST" action="">
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.nome_fantasia.label }}<br />
-        {{ form.nome_fantasia(size=40) }} {% for error in
-        form.nome_fantasia.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div
+      class="card shadow-lg p-5"
+      style="border: 3px solid var(--purple-dark)"
+    >
+      <h2 class="card-title text-center mb-4" style="color: var(--purple-dark)">
+        Cadastre Seu Restaurante
+      </h2>
+      <p class="text-center text-muted">
+        Comece a vender no YummyGo e alcance novos clientes todos os dias.
       </p>
 
-      <p>
-        {{ form.cnpj.label }}<br />
-        {{ form.cnpj(size=20) }} {% for error in form.cnpj.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
+      <hr class="my-4" />
+
+      <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.nome_fantasia.label(class="form-label") }} {{
+            form.nome_fantasia(class="form-control", placeholder="Ex: Pizzaria
+            Napolitana") }} {% for error in form.nome_fantasia.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6 mb-3">
+            {{ form.cnpj.label(class="form-label") }} {{
+            form.cnpj(class="form-control", placeholder="Apenas números") }} {%
+            for error in form.cnpj.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.taxa_entrega.label(class="form-label") }} {{
+            form.taxa_entrega(class="form-control", placeholder="Ex: 7.50",
+            type="number", step="0.01") }} {% for error in
+            form.taxa_entrega.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6 mb-3">
+            {{ form.tempo_medio_entrega.label(class="form-label") }} {{
+            form.tempo_medio_entrega(class="form-control", placeholder="Em
+            minutos, Ex: 45", type="number") }} {% for error in
+            form.tempo_medio_entrega.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+          {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+          style="background-color: var(--purple-dark);") }}
+        </div>
+      </form>
+
+      <p class="text-center mt-3">
+        <a href="{{ url_for('auth.home') }}">Voltar para a Página Inicial</a>.
       </p>
-
-      <p>
-        {{ form.taxa_entrega.label }}<br />
-        {{ form.taxa_entrega() }} {% for error in form.taxa_entrega.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>
-        {{ form.tempo_medio_entrega.label }}<br />
-        {{ form.tempo_medio_entrega() }} {% for error in
-        form.tempo_medio_entrega.errors %}
-        <span style="color: red">[{{ error }}]</span>
-        {% endfor %}
-      </p>
-
-      <p>{{ form.submit() }}</p>
-    </form>
-
-    <hr />
-    <p><a href="{{ url_for('auth.home') }}">Voltar à Página Inicial</a></p>
-  </body>
-</html>
+    </div>
+  </div>
+</div>
+{% endblock content %}

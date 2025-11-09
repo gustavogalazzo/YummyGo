@@ -65,3 +65,19 @@ class OrderStatusForm(FlaskForm):
     Formulário para mudar o status do pedido (botão de Ação).
     """
     submit = SubmitField('Atualizar Status')
+
+class UpdateRestaurantInfoForm(FlaskForm):
+    """
+    Formulário para o Dono do Restaurante editar as informações básicas.
+    """
+    nome_fantasia = StringField('Nome do Restaurante (Nome Fantasia)', 
+                                validators=[DataRequired(), Length(max=100)])
+    cnpj = StringField('CNPJ (apenas números)', 
+                       validators=[DataRequired(), Length(min=14, max=14)])
+    taxa_entrega = FloatField('Taxa de Entrega (ex: 5.50)', 
+                              validators=[DataRequired()])
+    tempo_medio_entrega = IntegerField('Tempo Médio de Entrega (em minutos, ex: 30)',
+                                       validators=[DataRequired()])
+    logo_url = StringField('URL da Logomarca (Futuro Upload)', validators=[Length(max=255)]) # Placeholder
+    
+    submit = SubmitField('Salvar Informações')

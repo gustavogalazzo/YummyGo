@@ -5,7 +5,7 @@ Define as rotas para /portal/ (dashboard) e /portal/registar
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from src.modules.restaurant.forms import RestaurantRegistrationForm, CategoryForm, ProductForm, OrderStatusForm
+from src.modules.restaurant.forms import RestaurantRegistrationForm, CategoryForm, ProductForm, OrderStatusForm, UpdateRestaurantInfoForm
 from src.extensions import db
 from src.models import Restaurante, Categoria, Produto, Pedido, ItemPedido
 from flask import abort 
@@ -238,3 +238,25 @@ def manage_orders():
         form=form,
         status_fluxo=STATUS_FLUXO
     )
+
+# --- Rota de Gestão de Informações do Estabelecimento ---
+@restaurant_bp.route('/info', methods=['GET', 'POST'])
+@login_required
+def manage_info():
+    """
+    Permite ao dono do restaurante atualizar as suas informações de negócio.
+    """
+    if current_user.role != 'restaurante':
+        abort(403)
+        
+    restaurante = current_user.restaurante
+    form = UpdateRestaurantInfoForm(obj=restaurante) # Pré-preenche o formulário
+    
+    if form.validate_on_submit():
+        # Atualiza o objeto restaurante com os dados do formulário
+        form.populate_obj(restaurante)
+        db.session.commit()
+        flash('Informações do restaurante atualizadas com sucesso!', 'success')
+        return redirect(url_for('restaurant.dashboard'))
+
+    return render_template('manage_info.html', form=form)

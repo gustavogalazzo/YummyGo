@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Informações do Estabelecimento
+    </h2>
+
+    <div class="card shadow-sm p-4">
+      <p class="text-muted">
+        Aqui você pode gerir os dados essenciais do seu restaurante.
+      </p>
+      <hr />
+
+      <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.nome_fantasia.label(class="form-label") }} {{
+          form.nome_fantasia(class="form-control") }} {% for error in
+          form.nome_fantasia.errors %}
+          <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.cnpj.label(class="form-label") }} {{
+            form.cnpj(class="form-control") }} {% for error in form.cnpj.errors
+            %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.logo_url.label(class="form-label") }} {{
+            form.logo_url(class="form-control", placeholder="URL da Logomarca")
+            }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.taxa_entrega.label(class="form-label") }} {{
+            form.taxa_entrega(class="form-control", type="number", step="0.01")
+            }}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.tempo_medio_entrega.label(class="form-label") }} {{
+            form.tempo_medio_entrega(class="form-control", type="number") }}
+          </div>
+        </div>
+
+        <div class="d-grid mt-4">
+          {{ form.submit(class="btn btn-purple btn-lg", style="background-color:
+          var(--purple-dark);") }}
+        </div>
+      </form>
+
+      <p class="text-center mt-3">
+        <a href="{{ url_for('restaurant.dashboard') }}">← Voltar ao Portal</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock content %}
