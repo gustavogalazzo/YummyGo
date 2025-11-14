@@ -22,3 +22,4 @@ stripe
 
 # --- Utilidades ---
 gunicorn             # Servidor de produção (para mais tarde)
+psycopg2-binary
