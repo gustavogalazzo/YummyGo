@@ -18,6 +18,17 @@ class RegistrationForm(FlaskForm):
     
     telefone = StringField('Telefone',
                            validators=[DataRequired(), Length(min=9, max=20)]) # Validação simples
+    def validate_telefone(self, telefone):
+        """Verifica se o telefone já existe E se o formato é internacional."""
+        
+        # 1. Checagem de Existência (Lógica existente)
+        user = User.query.filter_by(telefone=telefone.data).first()
+        if user:
+            raise ValidationError('Este telefone já está registado. Por favor, escolha outro.')
+            
+        # 2. Checagem de Formato (Nova!)
+        if not telefone.data.startswith('+'):
+            raise ValidationError('Por favor, inclua o código internacional do país (ex: +55). O formato deve ser +DDDnúmero.')
     
     password = PasswordField('Senha', 
                              validators=[DataRequired(), Length(min=6)])
