@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold" style="color: var(--purple-dark);">Acompanhar Pedido #{{ pedido.id }}</h2>
+        <a href="{{ url_for('client.order_history') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Voltar aos Pedidos
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body p-5">
+                    <h4 class="mb-4 text-center" style="color: var(--purple-light);">
+                        Previsão de entrega: 
+                        <span class="fw-bold text-dark">20-30 min</span>
+                    </h4>
+
+                    <div class="position-relative mx-4">
+                        <div class="track-line">
+                            <div class="track-line-progress" style="width: {{ (current_step_index / 3) * 100 }}%;"></div>
+                        </div>
+
+                        {% for step in steps %}
+                            {% set idx = loop.index0 %}
+                            <div class="step-dot step-dot-{{ idx }} {% if idx <= current_step_index %}step-active{% endif %}">
+                                <span class="step-label step-dot-{{ idx }} {% if idx <= current_step_index %}step-label-active{% endif %}">
+                                    {{ step }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="text-center mt-5">
+                        <p class="text-muted small">Status atual: <strong>{{ pedido.status }}</strong></p>
+                        <p class="text-muted small"><i class="fas fa-sync fa-spin"></i> Atualizando em tempo real...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-map-marker-alt text-danger me-2"></i> Localização
+                </div>
+                <div class="card-body p-0">
+                    <div style="background-color: #e9ecef; height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <img src="https://maps.googleapis.com/maps/api/staticmap?center=-23.550520,-46.633308&zoom=14&size=800x300&maptype=roadmap&markers=color:red%7C-23.550520,-46.633308&key={{ config['GOOGLE_MAPS_API_KEY'] if config['GOOGLE_MAPS_API_KEY'] else '' }}" 
+                             alt="Mapa da Entrega" 
+                             style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                         
+                        {% if not config['GOOGLE_MAPS_API_KEY'] %}
+                            <span class="position-absolute text-muted">Mapa (Configure a API Key para ver o real)</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex align-items-center p-3 bg-light">
+                        <div class="me-3">
+                            <div style="width: 50px; height: 50px; background-color: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-helmet-safety fa-lg text-secondary"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">João Entregador</h6>
+                            <small class="text-muted">Honda CG 160 • Placa ABC-1234</small>
+                            <div class="text-success small"><i class="fas fa-star"></i> 4.9 (520 entregas)</div>
+                        </div>
+                        <div class="ms-auto">
+                            <button class="btn btn-success btn-sm rounded-pill">
+                                <i class="fab fa-whatsapp"></i> Contatar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-purple text-white" style="background-color: var(--purple-dark);">
+                    Resumo do Pedido
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold">{{ pedido.restaurante.nome_fantasia }}</h5>
+                    <hr>
+                    <ul class="list-unstyled">
+                        {% for item in pedido.itens %}
+                        <li class="d-flex justify-content-between mb-2">
+                            <span>{{ item.quantidade }}x {{ item.produto.nome }}</span>
+                            <span class="text-muted">R$ {{ "%.2f"|format(item.preco_unitario_na_compra * item.quantidade) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total</span>
+                        <span style="color: var(--purple-dark);">R$ {{ "%.2f"|format(pedido.preco_total) }}</span>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted d-block mb-1">Endereço de Entrega:</small>
+                        <p class="small mb-0"><i class="fas fa-home me-1"></i> {{ pedido.endereco_entrega }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <small class="text-muted">Teve algum problema?</small><br>
+                    <a href="#" class="text-decoration-none fw-bold" style="color: var(--purple-light);">Falar com Suporte</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Atualiza a página a cada 30 segundos para ver se o status mudou
+    setTimeout(function(){
+       window.location.reload(1);
+    }, 30000);
+</script>
+
+{% endblock %}

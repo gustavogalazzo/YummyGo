@@ -80,10 +80,6 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_..
 
 
-Parceiro de Programacao
-Perfeito! Aqui está o ficheiro README.md completo, incluindo o passo a passo detalhado de como rodar o projeto, tal como me pediu.
-
-Pode copiar e colar este bloco diretamente no seu ficheiro yummygo/README.md.
 
 Markdown
 # 🍔 YummyGo: Plataforma de Delivery (Projeto Final)
@@ -115,57 +111,6 @@ Todas as funcionalidades essenciais de Back-End (DB, Autenticação, Fluxos) est
 * Página de **Checkout** com resumo e seleção de endereço.
 * **Integração de Pagamento Seguro (Stripe):** Criação de Sessão de Checkout e Confirmação de Pagamento via **Webhook** seguro.
 
----
-
-## 🛠️ Guia de Iniciação Rápida (Setup)
-
-Siga os passos abaixo para configurar e rodar o YummyGo no seu ambiente local (Windows PowerShell recomendado).
-
-### Pré-requisitos
-* **Python 3.8+**
-* **Git**
-* Conta de Teste no **Stripe** (para chaves `pk_test_` e `sk_test_`).
-
-### 1. Clonar e Instalar Dependências
-
-Abra o seu terminal (PowerShell) e execute:
-
-```bash
-# 1. Clonar o repositório (substitua pelo seu URL)
-git clone [URL_DO_SEU_REPOSITORIO]
-cd yummygo
-
-# 2. Criar e Ativar Ambiente Virtual
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-# 3. Instalar as bibliotecas
-pip install -r requirements.txt
-2. Configurar Variáveis de Ambiente
-Crie um ficheiro .env na pasta yummygo/ (a raiz) e preencha com as suas chaves secretas.
-
-Ini, TOML
-# Chave secreta do Flask (obrigatória)
-SECRET_KEY='sua-chave-secreta-aleatoria-aqui' 
-
-# Base de Dados (SQLite)
-DATABASE_URL='sqlite:///dev.db'
-
-# Google Login (Para Autenticação Social)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-# Twilio (Para Autenticação OTP via SMS)
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_PHONE_NUMBER=
-
-# PAGAMENTOS (Stripe - Modo de Teste)
-STRIPE_PUBLIC_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-3. Inicializar a Base de Dados
-O projeto usa Flask-Migrate. Basta aplicar todas as migrações existentes:
 
 Bash
 # Certifique-se que o .venv está ativo!

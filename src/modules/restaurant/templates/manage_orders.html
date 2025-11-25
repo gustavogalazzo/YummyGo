@@ -1,60 +1,80 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Pedidos Recebidos - YummyGo</title>
-  </head>
-  <body>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% endwith %}
+{% extends "base.html" %}
 
-    <h2>Pedidos Recebidos</h2>
-    <p>Pedidos em aberto para o seu restaurante (Omega).</p>
-    <hr />
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        
+        <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark);">Pedidos Recebidos</h2>
+        <p class="lead text-muted">Pedidos em aberto para o seu restaurante ({{ current_user.restaurante.nome_fantasia }}).</p>
+        
+        <hr class="mb-4">
 
-    {% if not pedidos %}
-    <p>🎉 Nenhum pedido em aberto. Está calmo por aqui!</p>
-    {% else %} {% for pedido in pedidos %}
-    <div style="border: 2px solid #5cb85c; padding: 15px; margin-bottom: 20px">
-      <h3>
-        Pedido #{{ pedido.id }} -
-        <span style="color: blue">Status: {{ pedido.status }}</span>
-      </h3>
-      <p>
-        <strong>Criado em:</strong> {{ pedido.data_criacao.strftime('%d/%m/%Y às
-        %H:%M') }}<br />
-        <strong>Total:</strong> R$ {{ "%.2f"|format(pedido.preco_total) }}<br />
-        <strong>Cliente:</strong> {{ pedido.cliente.nome_completo }}<br />
-        <strong>Entregar em:</strong> {{ pedido.endereco_entrega }}
-      </p>
+        {% if not pedidos %}
+            <div class="alert alert-success text-center py-4">
+                🎉 Nenhum pedido em aberto. Está calmo por aqui!
+            </div>
+        {% else %}
+            {% for pedido in pedidos %}
+                <div class="card mb-4 shadow-sm" style="border-left: 5px solid var(--purple-dark);">
+                    
+                    <div class="card-body">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0">Pedido #{{ pedido.id }}</h5>
+                            
+                            {% if pedido.status == 'Em Preparo' %}
+                                <span class="badge bg-warning text-dark fs-6">{{ pedido.status }}</span>
+                            {% elif pedido.status == 'Em Rota de Entrega' %}
+                                <span class="badge bg-primary fs-6">{{ pedido.status }}</span>
+                            {% elif pedido.status == 'Recebido' %}
+                                <span class="badge bg-success fs-6">Novo Pedido</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">{{ pedido.status }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row small text-muted mb-3">
+                            <div class="col-md-6">
+                                <i class="fas fa-user me-1"></i> Cliente: **{{ pedido.cliente.nome_completo }}**<br>
+                                <i class="fas fa-money-bill-wave me-1"></i> Total: R$ **{{ "%.2f"|format(pedido.preco_total) }}**
+                            </div>
+                            <div class="col-md-6">
+                                <i class="fas fa-calendar-alt me-1"></i> Data: {{ pedido.data_criacao.strftime('%d/%m/%Y às %H:%M') }}<br>
+                                <i class="fas fa-map-marker-alt me-1"></i> Entrega: {{ pedido.endereco_entrega | truncate(60, True) }}
+                            </div>
+                        </div>
 
-      <h4>Itens do Pedido:</h4>
-      <ul>
-        {% for item in pedido.itens %}
-        <li>
-          {{ item.quantidade }}x {{ item.produto.nome }} (R$ {{
-          "%.2f"|format(item.preco_unitario_na_compra) }} cada)
-        </li>
-        {% endfor %}
-      </ul>
+                        <h6 classfw-bold mb-1 mt-3" style="color: var(--purple-light);">Itens:</h6>
+                        <ul class="list-group list-group-flush small mb-3">
+                            {% for item in pedido.itens %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>{{ item.quantidade }}x {{ item.produto.nome }}</span>
+                                    <span class="fw-bold">R$ {{ "%.2f"|format(item.preco_unitario_na_compra) }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
 
-      {% if pedido.status in status_fluxo and pedido.status != status_fluxo[-1]
-      %}
-      <hr />
-      <form method="POST" action="{{ url_for('restaurant.manage_orders') }}">
-        {{ form.hidden_tag() }}
-        <input type="hidden" name="pedido_id" value="{{ pedido.id }}" />
+                        {% if pedido.status in status_fluxo and pedido.status != status_fluxo[-1] %}
+                            <hr>
+                            <form method="POST" action="{{ url_for('restaurant.manage_orders') }}" class="mt-3">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
+                                
+                                {% set current_index = status_fluxo.index(pedido.status) %}
+                                {% set next_status = status_fluxo[current_index + 1] %}
+                                
+                                <p class="small mb-2">Próximo passo: <span class="fw-bold text-success">{{ next_status }}</span></p>
+                                
+                                <button type="submit" class="btn btn-purple" style="background-color: var(--purple-dark);">
+                                    Avançar para {{ next_status }}
+                                </button>
+                            </form>
+                        {% endif %}
 
-        {% set next_index = status_fluxo.index(pedido.status) + 1 %} {% set
-        next_status = status_fluxo[next_index] %}
-
-        <p>Próximo passo: <strong>{{ next_status }}</strong></p>
-        <input type="submit" value="Avançar para {{ next_status }}" />
-      </form>
-      {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
-    {% endfor %} {% endif %}
-  </body>
-</html>
+</div>
+{% endblock content %}

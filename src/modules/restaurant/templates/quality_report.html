@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-4" style="color: var(--purple-dark);">
+        <i class="fas fa-star-half-alt me-2"></i> Relatório de Entregas e Avaliações
+    </h2>
+
+    <div class="card shadow-sm mb-4 p-3 bg-light">
+        <form method="GET" action="{{ url_for('restaurant.quality_report') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Data Início:</label>
+                <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Data Final:</label>
+                <input type="date" name="data_fim" class="form-control" value="{{ data_fim }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-purple text-white w-100" style="background-color: var(--purple-dark);">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">Detalhamento de Qualidade</div>
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Restaurante</th>
+                                <th class="text-center">Avaliação Média (★)</th>
+                                <th class="text-center">Reclamações (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in relatorio %}
+                            <tr>
+                                <td class="fw-bold">{{ item.restaurante }}</td>
+                                <td class="text-center fw-bold text-warning">
+                                    {{ "%.1f"|format(item.media) }} <i class="fas fa-star small"></i>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if item.perc_reclamacoes > 5 %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ "%.1f"|format(item.perc_reclamacoes) }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">Avaliação Média por Restaurante</div>
+                <div class="card-body">
+                    <canvas id="qualityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('restaurant.dashboard') }}" class="text-decoration-none">← Voltar ao Portal</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const labels = {{ grafico_labels | tojson }};
+    const dataValues = {{ grafico_data | tojson }};
+
+    const ctx = document.getElementById('qualityChart').getContext('2d');
+    
+    if (labels.length === 0) {
+        ctx.font = "14px Arial";
+        ctx.fillText("Sem avaliações para o período.", 50, 50);
+    } else {
+        new Chart(ctx, {
+            type: 'bar', // Gráfico de Barras (como na imagem)
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avaliação Média (★)',
+                    data: dataValues,
+                    backgroundColor: '#4285F4', // Azul (como na imagem)
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5, // Máximo de 5 estrelas
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // Esconde a legenda superior se quiser igual à imagem
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

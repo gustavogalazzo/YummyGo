@@ -7,8 +7,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from src.modules.restaurant.forms import RestaurantRegistrationForm, CategoryForm, ProductForm, OrderStatusForm, UpdateRestaurantInfoForm
 from src.extensions import db
-from src.models import Restaurante, Categoria, Produto, Pedido, ItemPedido
+from src.models import Restaurante, Categoria, Produto, Pedido, ItemPedido, Avaliacao
 from flask import abort 
+from sqlalchemy import func, case
+from datetime import datetime, timedelta
 
 # 1. Criação do Blueprint
 restaurant_bp = Blueprint('restaurant', __name__, template_folder='templates')
@@ -260,3 +262,148 @@ def manage_info():
         return redirect(url_for('restaurant.dashboard'))
 
     return render_template('manage_info.html', form=form)
+
+# --- Rota de Relatório de Vendas ---
+@restaurant_bp.route('/relatorio', methods=['GET'])
+@login_required
+def orders_report():
+    """
+    Gera um relatório de pedidos agrupado por restaurante.
+    Inclui filtros de data e dados para gráfico.
+    """
+    # 1. Obter filtros de data da URL (GET)
+    data_inicio_str = request.args.get('data_inicio')
+    data_fim_str = request.args.get('data_fim')
+
+    # Datas padrão (Últimos 30 dias se não for informado)
+    if data_inicio_str:
+        data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
+    else:
+        data_inicio = datetime.now() - timedelta(days=30)
+        
+    if data_fim_str:
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d')
+        # Ajusta para o final do dia (23:59:59)
+        data_fim = data_fim.replace(hour=23, minute=59, second=59)
+    else:
+        data_fim = datetime.now()
+
+    # 2. Consulta ao Banco de Dados (Aggregation)
+    # SQL equivalente: SELECT nome, count(id), sum(total) FROM pedidos GROUP BY restaurante_id
+    resultados = db.session.query(
+        Restaurante.nome_fantasia,
+        func.count(Pedido.id).label('qtd_pedidos'),
+        func.sum(Pedido.preco_total).label('faturamento')
+    ).join(Pedido).filter(
+        Pedido.data_criacao >= data_inicio,
+        Pedido.data_criacao <= data_fim,
+        Pedido.status != 'Cancelado' # Ignora cancelados
+    ).group_by(Restaurante.id).all()
+
+    # 3. Processar Dados para a Tabela e Gráfico
+    relatorio_dados = []
+    total_geral_pedidos = 0
+    
+    # Primeiro loop para calcular o total geral (para a porcentagem)
+    for r in resultados:
+        total_geral_pedidos += r.qtd_pedidos
+
+    # Segundo loop para montar os dados finais
+    nomes_grafico = []
+    valores_grafico = []
+    cores_grafico = [] # Vamos gerar cores aleatórias ou fixas
+
+    import random
+    
+    for r in resultados:
+        ticket_medio = r.faturamento / r.qtd_pedidos if r.qtd_pedidos > 0 else 0
+        representatividade = (r.qtd_pedidos / total_geral_pedidos * 100) if total_geral_pedidos > 0 else 0
+        
+        # Dados para a tabela
+        relatorio_dados.append({
+            'restaurante': r.nome_fantasia,
+            'qtd': r.qtd_pedidos,
+            'faturamento': r.faturamento,
+            'ticket_medio': ticket_medio,
+            'perc': representatividade
+        })
+
+        # Dados para o Chart.js
+        nomes_grafico.append(r.nome_fantasia)
+        valores_grafico.append(r.qtd_pedidos)
+        # Gera uma cor aleatória hexadecimal
+        color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+        cores_grafico.append(color)
+
+    return render_template(
+        'orders_report.html',
+        relatorio=relatorio_dados,
+        total_geral=total_geral_pedidos,
+        data_inicio=data_inicio.strftime('%Y-%m-%d'),
+        data_fim=data_fim.strftime('%Y-%m-%d'),
+        # Passa dados para o JS
+        grafico_labels=nomes_grafico,
+        grafico_data=valores_grafico,
+        grafico_colors=cores_grafico
+    )
+
+# --- Rota de Relatório de Qualidade (Avaliações) ---
+@restaurant_bp.route('/relatorio/qualidade', methods=['GET'])
+@login_required
+def quality_report():
+    """
+    Gera um relatório de qualidade (Avaliações e Reclamações).
+    """
+    # 1. Filtros de Data (Igual ao relatório anterior)
+    data_inicio_str = request.args.get('data_inicio')
+    data_fim_str = request.args.get('data_fim')
+
+    if data_inicio_str:
+        data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
+    else:
+        data_inicio = datetime.now() - timedelta(days=30)
+        
+    if data_fim_str:
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d')
+        data_fim = data_fim.replace(hour=23, minute=59, second=59)
+    else:
+        data_fim = datetime.now()
+
+    # 2. Consulta: Agrupa por Restaurante e calcula Média e Contagem de Reclamações
+    resultados = db.session.query(
+        Restaurante.nome_fantasia,
+        func.avg(Avaliacao.nota).label('media_nota'),
+        func.count(Avaliacao.id).label('qtd_total'),
+        func.sum(case((Avaliacao.reclamacao == True, 1), else_=0)).label('qtd_reclamacoes')
+    ).join(Avaliacao).filter(
+        Avaliacao.data_criacao >= data_inicio,
+        Avaliacao.data_criacao <= data_fim
+    ).group_by(Restaurante.id).all()
+
+    # 3. Processar Dados
+    relatorio_dados = []
+    nomes_grafico = []
+    medias_grafico = []
+
+    for r in resultados:
+        media = float(r.media_nota) if r.media_nota else 0
+        perc_reclamacoes = (r.qtd_reclamacoes / r.qtd_total * 100) if r.qtd_total > 0 else 0
+        
+        relatorio_dados.append({
+            'restaurante': r.nome_fantasia,
+            'media': media,
+            'perc_reclamacoes': perc_reclamacoes
+        })
+
+        # Dados para o Gráfico de Barras
+        nomes_grafico.append(r.nome_fantasia)
+        medias_grafico.append(round(media, 1))
+
+    return render_template(
+        'quality_report.html',
+        relatorio=relatorio_dados,
+        data_inicio=data_inicio.strftime('%Y-%m-%d'),
+        data_fim=data_fim.strftime('%Y-%m-%d'),
+        grafico_labels=nomes_grafico,
+        grafico_data=medias_grafico
+    )

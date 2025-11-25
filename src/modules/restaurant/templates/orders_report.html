@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-4" style="color: var(--purple-dark);">
+        <i class="fas fa-chart-pie me-2"></i> Relatório de Pedidos por Restaurante
+    </h2>
+
+    <div class="card shadow-sm mb-4 p-3 bg-light">
+        <form method="GET" action="{{ url_for('restaurant.orders_report') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Data Início:</label>
+                <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Data Final:</label>
+                <input type="date" name="data_fim" class="form-control" value="{{ data_fim }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-purple text-white w-100" style="background-color: var(--purple-dark);">
+                    <i class="fas fa-filter"></i> Filtrar Relatório
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">Detalhamento</div>
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Restaurante</th>
+                                <th class="text-center">Qtd. Pedidos</th>
+                                <th class="text-end">Faturamento</th>
+                                <th class="text-end">Ticket Médio</th>
+                                <th class="text-center">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in relatorio %}
+                            <tr>
+                                <td class="fw-bold">{{ item.restaurante }}</td>
+                                <td class="text-center">{{ item.qtd }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(item.faturamento) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(item.ticket_medio) }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ "%.1f"|format(item.perc) }}%</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-group-divider fw-bold">
+                            <tr>
+                                <td>TOTAL</td>
+                                <td class="text-center">{{ total_geral }}</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold">Representatividade (%)</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('restaurant.dashboard') }}" class="text-decoration-none">← Voltar ao Portal</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Recupera os dados passados pelo Python (Jinja2)
+    const labels = {{ grafico_labels | tojson }};
+    const dataValues = {{ grafico_data | tojson }};
+    const colors = {{ grafico_colors | tojson }};
+
+    const ctx = document.getElementById('ordersChart').getContext('2d');
+    
+    if (labels.length === 0) {
+        // Se não houver dados, escreve uma mensagem no canvas
+        ctx.font = "14px Arial";
+        ctx.fillText("Sem dados para o período.", 50, 50);
+    } else {
+        new Chart(ctx, {
+            type: 'pie', // Tipo Pizza
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: colors,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Total de Pedidos por Restaurante'
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+{% endblock %}

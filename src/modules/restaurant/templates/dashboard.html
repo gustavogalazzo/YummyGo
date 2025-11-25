@@ -74,6 +74,27 @@
           </div>
         </a>
       </div>
+      <div class="col-md-4 mb-4">
+            <a href="{{ url_for('restaurant.orders_report') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 p-3" style="border: 2px solid #28a745;">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-dark"><i class="fas fa-chart-line me-2"></i> Relatórios</h5>
+                          <p class="card-text text-muted">Analise o desempenho de vendas e pedidos.</p>
+                      </div>
+                </div>
+            </a>
+      </div>
+      <div class="col-md-4 mb-4">
+                <a href="{{ url_for('restaurant.quality_report') }}" class="text-decoration-none">
+                    <div class="card shadow-sm h-100 p-3" style="border: 2px solid #0d6efd;"> <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark">
+                                <i class="fas fa-star-half-alt me-2"></i> Qualidade
+                            </h5>
+                            <p class="card-text text-muted">Avaliações médias e taxa de reclamações.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
     </div>
   </div>
 </div>

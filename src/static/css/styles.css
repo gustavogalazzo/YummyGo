@@ -52,3 +52,55 @@
     from, to { border-color: transparent }
     50% { border-color: var(--purple-dark); }
 }
+
+/* --- TRACKING TIMELINE (STEPPER) --- */
+.track-line {
+    height: 4px;
+    background-color: #ddd;
+    position: relative;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.step-dot {
+    height: 20px;
+    width: 20px;
+    background-color: #ddd;
+    border-radius: 50%;
+    position: absolute;
+    top: -8px;
+    border: 2px solid #fff;
+}
+
+/* Posicionamento das 4 bolinhas (0%, 33%, 66%, 100%) */
+.step-dot-0 { left: 0%; }
+.step-dot-1 { left: 33%; }
+.step-dot-2 { left: 66%; }
+.step-dot-3 { left: 100%; margin-left: -10px; }
+
+/* Estado Ativo (Roxo) */
+.step-active {
+    background-color: var(--purple-dark);
+    box-shadow: 0 0 0 4px var(--purple-bg);
+}
+
+.track-line-progress {
+    height: 100%;
+    background-color: var(--purple-dark);
+    width: 0%; /* Será definido via style inline no HTML */
+    transition: width 0.5s ease;
+}
+
+.step-label {
+    position: absolute;
+    top: 25px;
+    font-size: 0.8rem;
+    color: #666;
+    transform: translateX(-35%); /* Centraliza o texto na bolinha */
+    white-space: nowrap;
+}
+.step-label-active {
+    color: var(--purple-dark);
+    font-weight: bold;
+}

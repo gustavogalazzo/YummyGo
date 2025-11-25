@@ -10,4 +10,5 @@ from .user_model import User
 from .restaurant_model import Restaurante, Endereco
 from .menu_model import Categoria, Produto
 from .order_model import Pedido, ItemPedido
+from .feedback_model import Avaliacao
 # from .payment_model import FormaPagamento (ainda não criámos)

@@ -1,65 +1,61 @@
-{% extends "base.html" %} {% block content %}
-<h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
-  Meus Pedidos
-</h2>
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark);">Meus Pedidos</h2>
 
 <div class="row">
-  <div class="col-12">
-    {% if not pedidos %}
-    <div class="alert alert-info">Você ainda não tem pedidos registados.</div>
-    <p><a href="{{ url_for('auth.home') }}">Faça o seu primeiro pedido!</a></p>
-    {% else %} {% for pedido in pedidos %}
-    <div
-      class="card mb-4 shadow-sm"
-      style="border-left: 5px solid var(--purple-light)"
-    >
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="card-title fw-bold mb-0">Pedido #{{ pedido.id }}</h5>
-          {% if pedido.status == 'Concluído' %}
-          <span class="badge bg-success">CONCLUÍDO</span>
-          {% elif pedido.status == 'Recebido' or pedido.status == 'Em Preparo'
-          %}
-          <span class="badge bg-warning text-dark"
-            >EM ANDAMENTO ({{ pedido.status }})</span
-          >
-          {% elif pedido.status == 'Em Rota de Entrega' %}
-          <span class="badge bg-primary">EM ROTA</span>
-          {% else %}
-          <span class="badge bg-secondary">{{ pedido.status }}</span>
-          {% endif %}
-        </div>
+    <div class="col-12">
+        {% if not pedidos %}
+            <div class="alert alert-info">Você ainda não tem pedidos registados.</div>
+            <p><a href="{{ url_for('auth.home') }}">Faça o seu primeiro pedido!</a></p>
+        {% else %}
+            {% for pedido in pedidos %}
+                <div class="card mb-4 shadow-sm" style="border-left: 5px solid var(--purple-light);">
+                    <div class="card-body">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="card-title fw-bold mb-0 d-inline-block me-2">Pedido #{{ pedido.id }}</h5>
+                                
+                                {% if pedido.status == 'Concluído' %}
+                                    <span class="badge bg-success">CONCLUÍDO</span>
+                                {% elif pedido.status == 'Recebido' or pedido.status == 'Em Preparo' %}
+                                    <span class="badge bg-warning text-dark">EM ANDAMENTO ({{ pedido.status }})</span>
+                                {% elif pedido.status == 'Em Rota de Entrega' %}
+                                    <span class="badge bg-primary">EM ROTA</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ pedido.status }}</span>
+                                {% endif %}
+                            </div>
 
-        <div class="row small text-muted mb-3">
-          <div class="col-md-6">
-            <i class="fas fa-store me-1"></i> **Restaurante:** {{
-            pedido.restaurante.nome_fantasia }}<br />
-            <i class="fas fa-calendar-alt me-1"></i> **Data:** {{
-            pedido.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
-          </div>
-          <div class="col-md-6 text-end">
-            <i class="fas fa-money-bill-wave me-1"></i> **Total Pago:** R$ {{
-            "%.2f"|format(pedido.preco_total) }}<br />
-            <i class="fas fa-map-marker-alt me-1"></i> **Entrega em:** {{
-            pedido.endereco_entrega | truncate(60, True) }}
-          </div>
-        </div>
-
-        <h6 class="fw-bold mb-1" style="color: var(--purple-dark)">Itens:</h6>
-        <ul class="list-group list-group-flush list-group-horizontal small">
-          {% for item in pedido.itens %}
-          <li class="list-group-item p-1 border-0">
-            {{ item.quantidade }}x {{ item.produto.nome }}
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
+                            <a href="{{ url_for('client.track_order', pedido_id=pedido.id) }}" class="btn btn-sm btn-outline-purple fw-bold" style="color: var(--purple-dark); border-color: var(--purple-dark);">
+                                <i class="fas fa-map-marked-alt me-1"></i> Acompanhar
+                            </a>
+                        </div>
+                        
+                        <div class="row small text-muted mb-3">
+                            <div class="col-md-6">
+                                <i class="fas fa-store me-1"></i> <strong>Restaurante:</strong> {{ pedido.restaurante.nome_fantasia }}<br>
+                                <i class="fas fa-calendar-alt me-1"></i> <strong>Data:</strong> {{ pedido.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <i class="fas fa-money-bill-wave me-1"></i> <strong>Total Pago:</strong> R$ {{ "%.2f"|format(pedido.preco_total) }}<br>
+                                <i class="fas fa-map-marker-alt me-1"></i> <strong>Entrega em:</strong> {{ pedido.endereco_entrega | truncate(60, True) }}
+                            </div>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-1" style="color: var(--purple-dark);">Itens:</h6>
+                        <ul class="list-group list-group-flush list-group-horizontal small">
+                            {% for item in pedido.itens %}
+                                <li class="list-group-item p-1 border-0">{{ item.quantidade }}x {{ item.produto.nome }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
-    {% endfor %} {% endif %}
-  </div>
 </div>
 
-<p class="text-center mt-4">
-  <a href="{{ url_for('client.profile') }}">← Voltar ao Meu Perfil</a>
-</p>
+<p class="text-center mt-4"><a href="{{ url_for('client.profile') }}">← Voltar ao Meu Perfil</a></p>
 {% endblock content %}
