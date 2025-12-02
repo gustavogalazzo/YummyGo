@@ -1,0 +1,56 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-lg border-0">
+      <div
+        class="card-header bg-purple text-white text-center py-4"
+        style="background-color: var(--purple-dark) !important"
+      >
+        <h4 class="mb-0 fw-bold">Como foi o seu pedido?</h4>
+        <p class="mb-0 mt-2 opacity-75">
+          {{ pedido.restaurante.nome_fantasia }}
+        </p>
+      </div>
+
+      <div class="card-body p-5">
+        <form method="POST" action="">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-4 text-center">
+            <label class="form-label fw-bold text-muted mb-3"
+              >Selecione uma nota</label
+            >
+            <div class="input-group">
+              <span class="input-group-text bg-white text-warning"
+                ><i class="fas fa-star"></i
+              ></span>
+              {{ form.nota(class="form-select form-select-lg") }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold text-muted"
+              >Deixe um comentário (opcional)</label
+            >
+            {{ form.comentario(class="form-control", rows=4, placeholder="A
+            comida estava quente? A entrega foi rápida?") }}
+          </div>
+
+          <div class="d-grid">
+            {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+            style="background-color: var(--purple-light);") }}
+          </div>
+        </form>
+
+        <p class="text-center mt-4">
+          <a
+            href="{{ url_for('client.order_history') }}"
+            class="text-decoration-none text-muted"
+            >Cancelar e voltar</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

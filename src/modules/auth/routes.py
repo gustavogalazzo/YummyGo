@@ -556,7 +556,7 @@ def remove_from_cart(produto_id):
     # 5. Redireciona de volta para a página do carrinho
     return redirect(url_for('auth.view_cart'))
 
-# --- Rota de Checkout (ATUALIZADA para STRIPE) ---
+# --- Rota de Checkout (HÍBRIDA: Visual Stripe + Aprovação no Retorno) ---
 @auth_bp.route('/checkout', methods=['GET', 'POST'])
 @login_required
 def checkout():
@@ -570,98 +570,121 @@ def checkout():
     
     # Calcular Totais
     total_produtos = 0
+    line_items_stripe = []
     itens_template = []
     
     for p in produtos:
         qtd = cart['items'][str(p.id)]
         subtotal = p.preco * qtd
         total_produtos += subtotal
+        
         itens_template.append({'nome': p.nome, 'preco': p.preco, 'quantidade': qtd, 'subtotal': subtotal})
         
+        # Item para o Stripe
+        line_items_stripe.append({
+            "price_data": {
+                "currency": "brl", "product_data": {"name": p.nome},
+                "unit_amount": int(p.preco * 100)
+            },
+            "quantity": qtd
+        })
+        
     taxa = restaurante.taxa_entrega
-    # Gamification: Desconto Ouro
     if current_user.nivel == 'Ouro': taxa = 0.0
     
     total_final = total_produtos + taxa
     
+    if taxa > 0:
+        line_items_stripe.append({
+            "price_data": {
+                "currency": "brl", "product_data": {"name": "Taxa de Entrega"},
+                "unit_amount": int(taxa * 100)
+            },
+            "quantity": 1
+        })
+
     form = CheckoutForm()
     form.endereco_id.choices = [(e.id, f"{e.rua}, {e.numero}") for e in current_user.enderecos]
 
     if form.validate_on_submit():
         try:
-            # Criar Pedido (JÁ COMO RECEBIDO - FORÇADO)
             end = Endereco.query.get(form.endereco_id.data)
             
+            # 1. Cria Pedido como PENDENTE (Realismo)
             pedido = Pedido(
                 cliente_id=current_user.id,
                 restaurante_id=restaurante.id,
                 preco_total=total_final,
-                status='Recebido', # <--- AQUI ESTÁ O TRUQUE (Era 'Pendente')
+                status='Pendente de Pagamento', # <--- VOLTA A SER PENDENTE
                 endereco_entrega=f"{end.rua}, {end.numero} - {end.cep}"
             )
             db.session.add(pedido)
             db.session.commit()
             
-            # Criar Itens
             for p in produtos:
                 item = ItemPedido(pedido_id=pedido.id, produto_id=p.id, 
                                   quantidade=cart['items'][str(p.id)], preco_unitario_na_compra=p.preco)
                 db.session.add(item)
-            
-            # --- LÓGICA DE GAMIFICAÇÃO (Trazida do Webhook para cá) ---
-            # Como estamos a "fingir" que pagou, damos os pontos agora!
-            pontos_ganhos = int(total_final * 10)
-            current_user.pontos += pontos_ganhos
-            
-            # Verifica Level Up
-            if current_user.pontos >= 5000:
-                current_user.nivel = 'Ouro'
-            elif current_user.pontos >= 2000:
-                current_user.nivel = 'Prata'
-            else:
-                current_user.nivel = 'Bronze'
-            
-            flash(f'Pagamento (Simulado) Aprovado! Ganhou {pontos_ganhos} pontos!', 'success')
-
-            # Gerar PIN de 4 dígitos (simples e fácil de falar)
-            import random
-            pin_gerado = str(random.randint(1000, 9999))
-
-            pedido.delivery_pin = pin_gerado
-            # ----------------------------------------------------------
-
             db.session.commit()
             
-            # Limpa o carrinho e vai para o sucesso
-            session.pop('cart', None)
-            return redirect(url_for('auth.home')) # Ou redireciona para 'auth.order_success' se preferir
+            # 2. Gera Link do Stripe
+            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            session_stripe = stripe.checkout.Session.create(
+                line_items=line_items_stripe,
+                mode='payment',
+                # TRUQUE: Passamos o ID do pedido na URL de sucesso para aprová-lo na volta
+                success_url=url_for('auth.order_success', pedido_id=pedido.id, _external=True),
+                cancel_url=url_for('auth.order_cancel', _external=True),
+                client_reference_id=pedido.id
+            )
+            
+            # 3. Vai para o Stripe
+            return redirect(session_stripe.url, code=303)
         
         except Exception as e:
             db.session.rollback()
-            flash(f'Erro ao processar pedido: {e}', 'danger')
-            print(f"Erro: {e}")
+            flash(f'Erro ao iniciar pagamento: {e}', 'danger')
 
     return render_template('checkout.html', form=form, itens_carrinho=itens_template, 
                            restaurante=restaurante, total_produtos=total_produtos, 
                            taxa_entrega=taxa, total_final=total_final)
 
-# --- ROTAS DE RETORNO DO PAGAMENTO (STRIPE) ---
-
-@auth_bp.route('/order/success')
+# --- ROTA DE SUCESSO (COM APROVAÇÃO FORÇADA) ---
+@auth_bp.route('/order/success/<int:pedido_id>') # Agora recebe o ID
 @login_required
-def order_success():
+def order_success(pedido_id):
     """
-    Página para onde o cliente é enviado após um pagamento APROVADO.
-    NOTA: O Stripe recomenda usar Webhooks para confirmar o pagamento,
-    esta página é apenas para o cliente.
+    Chamada quando o cliente volta do Stripe.
+    FORÇA a aprovação do pedido imediatamente.
     """
-    # Limpamos o carrinho assim que o cliente é redirecionado
+    pedido = Pedido.query.get_or_404(pedido_id)
+    
+    # Só processa se ainda estiver pendente (para não duplicar pontos se o cliente der F5)
+    if pedido.status == 'Pendente de Pagamento':
+        # 1. Aprova o Pedido
+        pedido.status = 'Recebido'
+        
+        # 2. Gera o PIN
+        import random
+        pedido.delivery_pin = str(random.randint(1000, 9999))
+        
+        # 3. Gamificação (Pontos)
+        pontos_ganhos = int(pedido.preco_total * 10)
+        current_user.pontos += pontos_ganhos
+        
+        if current_user.pontos >= 5000: current_user.nivel = 'Ouro'
+        elif current_user.pontos >= 2000: current_user.nivel = 'Prata'
+        else: current_user.nivel = 'Bronze'
+        
+        db.session.commit()
+        
+        # Feedback Visual
+        flash(f'Pagamento Confirmado! Ganhou {pontos_ganhos} pontos! O restaurante já recebeu o pedido.', 'success')
+    
+    # Limpa o carrinho
     session.pop('cart', None)
     
-    flash('Pagamento concluído com sucesso! O seu pedido foi enviado para o restaurante.', 'success')
-    # TODO: Levar para a página "Meus Pedidos"
     return redirect(url_for('auth.home'))
-
 
 @auth_bp.route('/order/cancel')
 @login_required

@@ -7,8 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from src.modules.client.forms import UpdateProfileForm
 from src.extensions import db
-from src.modules.client.forms import UpdateProfileForm, AddressForm
-from src.models import User, Endereco, Pedido
+from src.modules.client.forms import UpdateProfileForm, AddressForm, ReviewForm
+from src.models import User, Endereco, Pedido, Avaliacao
 from flask import abort
 from src.services.geo_service import get_coordinates
 from io import BytesIO
@@ -185,3 +185,52 @@ def download_invoice(pedido_id):
         return response
     
     return "Erro ao gerar PDF", 500
+
+# --- Rota para Avaliar Pedido ---
+@client_bp.route('/pedido/<int:pedido_id>/avaliar', methods=['GET', 'POST'])
+@login_required
+def review_order(pedido_id):
+    """
+    Permite ao cliente avaliar um pedido CONCLUÍDO.
+    """
+    pedido = Pedido.query.get_or_404(pedido_id)
+    
+    # 1. Segurança: O pedido deve ser do utilizador atual
+    if pedido.cliente_id != current_user.id:
+        abort(403)
+        
+    # 2. Validação: Só pode avaliar pedidos CONCLUÍDOS
+    if pedido.status != 'Concluído':
+        flash('Você só pode avaliar pedidos que já foram entregues.', 'warning')
+        return redirect(url_for('client.order_history'))
+    
+    # 3. Validação: Verifica se já existe avaliação para este pedido
+    avaliacao_existente = Avaliacao.query.filter_by(pedido_id=pedido.id).first()
+    if avaliacao_existente:
+        flash('Você já avaliou este pedido anteriormente.', 'info')
+        return redirect(url_for('client.order_history'))
+
+    form = ReviewForm()
+    
+    if form.validate_on_submit():
+        nota = int(form.nota.data)
+        
+        # Lógica simples: Se a nota for 1 ou 2, marcamos como reclamação automática
+        e_reclamacao = True if nota <= 2 else False
+        
+        nova_avaliacao = Avaliacao(
+            pedido_id=pedido.id,
+            restaurante_id=pedido.restaurante_id,
+            cliente_id=current_user.id,
+            nota=nota,
+            comentario=form.comentario.data,
+            reclamacao=e_reclamacao
+        )
+        
+        db.session.add(nova_avaliacao)
+        db.session.commit()
+        
+        flash('Obrigado pela sua avaliação!', 'success')
+        return redirect(url_for('client.order_history'))
+        
+    return render_template('review_order.html', form=form, pedido=pedido)

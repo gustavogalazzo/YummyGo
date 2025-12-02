@@ -2,7 +2,7 @@
 Formulários do Módulo do Cliente (Flask-WTF)
 """
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, SelectField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Email, Length, ValidationError
 from src.models import User
 from flask_login import current_user
@@ -72,3 +72,16 @@ class CheckoutForm(FlaskForm):
                              validators=[DataRequired()])
     
     submit = SubmitField('Confirmar Pedido e Ir para Pagamento')
+
+    class ReviewForm(FlaskForm):
+    nota = SelectField('Nota', choices=[
+        ('5', '5 Estrelas - Excelente'),
+        ('4', '4 Estrelas - Bom'),
+        ('3', '3 Estrelas - Razoável'),
+        ('2', '2 Estrelas - Ruim'),
+        ('1', '1 Estrela - Péssimo')
+    ], validators=[DataRequired()])
+    
+    comentario = TextAreaField('Comentário (Opcional)', validators=[Length(max=500)])
+    
+    submit = SubmitField('Enviar Avaliação')
