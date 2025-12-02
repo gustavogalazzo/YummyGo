@@ -73,7 +73,11 @@ class CheckoutForm(FlaskForm):
     
     submit = SubmitField('Confirmar Pedido e Ir para Pagamento')
 
-    class ReviewForm(FlaskForm):
+    
+class ReviewForm(FlaskForm):
+    """
+    Formulário para avaliar um pedido concluído.
+    """
     nota = SelectField('Nota', choices=[
         ('5', '5 Estrelas - Excelente'),
         ('4', '4 Estrelas - Bom'),
