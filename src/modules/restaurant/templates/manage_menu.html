@@ -25,19 +25,30 @@
           {{ categoria.nome }} ({{ categoria.produtos | length }})
         </h5>
 
-        <form
-          method="POST"
-          action="{{ url_for('restaurant.delete_category', categoria_id=categoria.id) }}"
-          style="display: inline"
-        >
-          <button
-            type="submit"
-            class="btn btn-sm btn-outline-danger"
-            onclick="return confirm('ATENÇÃO: Apagar esta categoria também apagará TODOS os produtos dentro dela. Tem a certeza?')"
+        <div>
+          <a
+            href="{{ url_for('restaurant.edit_category', categoria_id=categoria.id) }}"
+            class="btn btn-sm btn-outline-primary me-1"
+            title="Editar Categoria"
           >
-            <i class="fas fa-times"></i> Apagar
-          </button>
-        </form>
+            <i class="fas fa-edit"></i>
+          </a>
+
+          <form
+            method="POST"
+            action="{{ url_for('restaurant.delete_category', categoria_id=categoria.id) }}"
+            style="display: inline"
+          >
+            <button
+              type="submit"
+              class="btn btn-sm btn-outline-danger"
+              title="Apagar Categoria"
+              onclick="return confirm('ATENÇÃO: Apagar esta categoria também apagará TODOS os produtos dentro dela. Tem a certeza?')"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </form>
+        </div>
       </div>
 
       <ul class="list-group list-group-flush">
@@ -49,32 +60,59 @@
         <li
           class="list-group-item d-flex justify-content-between align-items-start"
         >
-          <div>
-            <div class="fw-bold">
-              {{ produto.nome }} - R$ {{ "%.2f"|format(produto.preco) }}
-            </div>
-            <div class="text-muted small">{{ produto.descricao }}</div>
-          </div>
-          <span
-            class="badge rounded-pill {% if produto.disponivel %}bg-success{% else %}bg-warning{% endif %}"
-          >
-            {{ "Disponível" if produto.disponivel else "Indisponível" }}
-          </span>
+          <div class="d-flex align-items-center">
+            {% if produto.imagem_url %}
+            <img
+              src="{{ produto.imagem_url }}"
+              alt="{{ produto.nome }}"
+              style="
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 8px;
+              "
+              class="me-3 border"
+            />
+            {% endif %}
 
-          <form
-            method="POST"
-            action="{{ url_for('restaurant.delete_product', produto_id=produto.id) }}"
-            style="display: inline"
-            class="ms-3"
-          >
-            <button
-              type="submit"
-              class="btn btn-sm btn-outline-secondary"
-              onclick="return confirm('Apagar {{ produto.nome }}?')"
+            <div>
+              <div class="fw-bold">
+                {{ produto.nome }} - R$ {{ "%.2f"|format(produto.preco) }}
+              </div>
+              <div class="text-muted small">{{ produto.descricao }}</div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center">
+            <span
+              class="badge rounded-pill me-2 {% if produto.disponivel %}bg-success{% else %}bg-warning{% endif %}"
             >
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </form>
+              {{ "Disponível" if produto.disponivel else "Indisponível" }}
+            </span>
+
+            <a
+              href="{{ url_for('restaurant.edit_product', produto_id=produto.id) }}"
+              class="btn btn-sm btn-outline-primary me-1"
+              title="Editar Produto"
+            >
+              <i class="fas fa-edit"></i>
+            </a>
+
+            <form
+              method="POST"
+              action="{{ url_for('restaurant.delete_product', produto_id=produto.id) }}"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="btn btn-sm btn-outline-secondary"
+                title="Apagar Produto"
+                onclick="return confirm('Apagar {{ produto.nome }}?')"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </div>
         </li>
         {% endfor %} {% endif %}
       </ul>
@@ -108,7 +146,12 @@
       <h3 class="h5 fw-bold mb-3" style="color: var(--purple-dark)">
         Adicionar Produto
       </h3>
-      <form method="POST" action="{{ url_for('restaurant.manage_menu') }}">
+
+      <form
+        method="POST"
+        action="{{ url_for('restaurant.manage_menu') }}"
+        enctype="multipart/form-data"
+      >
         {{ product_form.hidden_tag() }}
 
         <div class="mb-3">
@@ -122,6 +165,12 @@
           <label class="form-label">{{ product_form.nome.label }}</label>
           {{ product_form.nome(class="form-control") }}
         </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ product_form.imagem.label }}</label>
+          {{ product_form.imagem(class="form-control") }}
+        </div>
+
         <div class="mb-3">
           <label class="form-label">{{ product_form.descricao.label }}</label>
           {{ product_form.descricao(class="form-control", rows=3) }}

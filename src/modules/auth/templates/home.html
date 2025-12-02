@@ -8,7 +8,7 @@
       class="display-4 fw-bolder"
       id="animated-title"
       data-fulltext="YummyGo: Seu delivery favorito em poucos cliques"
-      style="color: var(--purple-dark)"
+      style="color: var(--purple-dark); visibility: hidden"
     >
       YummyGo: Seu delivery favorito em poucos cliques
     </h1>
@@ -17,17 +17,29 @@
       facilidade.
     </p>
 
-    <div class="input-group mx-auto" style="max-width: 600px">
+    <form
+      action="{{ url_for('auth.search') }}"
+      method="GET"
+      class="input-group mx-auto"
+      style="max-width: 600px"
+    >
       <span class="input-group-text"
         ><i class="fas fa-map-marker-alt"></i
       ></span>
       <input
-        type="text"
+        type="search"
+        name="query"
         class="form-control form-control-lg"
-        placeholder="Digite seu endereço de entrega"
+        placeholder="Busque por produto, restaurante ou categoria..."
       />
-      <button class="btn btn-purple btn-lg" type="button">Buscar</button>
-    </div>
+      <button
+        class="btn btn-purple btn-lg"
+        type="submit"
+        style="background-color: #7b1fa2; color: white"
+      >
+        Buscar
+      </button>
+    </form>
   </div>
 </div>
 
@@ -41,14 +53,19 @@
   'fa-ice-cream'), ('Bebidas', 'fa-cocktail') ] %} {% for name, icon_class in
   categories %}
   <div class="col-md-2 col-4 mb-3">
-    <a href="#" class="text-decoration-none text-dark">
+    <a
+      href="{{ url_for('auth.search', query=name) }}"
+      class="text-decoration-none text-dark"
+    >
       <div
-        class="card p-3 text-center shadow-sm h-100"
+        class="card p-3 text-center shadow-sm h-100 category-card"
         style="
           border-radius: 15px;
-          border-color: #e1bee7;
           border: 2px solid var(--purple-light);
+          transition: transform 0.2s;
         "
+        onmouseover="this.style.transform='translateY(-5px)'"
+        onmouseout="this.style.transform='translateY(0)'"
       >
         <i
           class="fas {{ icon_class }} fa-3x mb-2"
@@ -68,39 +85,54 @@
 <div class="row">
   {% if not restaurantes %}
   <div class="col-12">
-    <p class="alert alert-info">Nenhum restaurante registado ainda.</p>
+    <p class="alert alert-info text-center">Nenhum restaurante encontrado.</p>
   </div>
   {% else %} {% for rest in restaurantes %}
   <div class="col-md-4 mb-4">
-    <div class="card shadow-lg h-100" style="border-radius: 10px">
-      <div
-        style="
-          background-color: var(--purple-bg);
-          height: 150px;
-          border-top-left-radius: 10px;
-          border-top-right-radius: 10px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 3rem;
-          color: var(--purple-dark);
-        "
-      >
-        <i class="fas fa-utensils"></i>
+    <div
+      class="card shadow-lg h-100"
+      style="border-radius: 10px; overflow: hidden"
+    >
+      {% if rest.logo_url %}
+      <div style="height: 150px; overflow: hidden; position: relative">
+        <img
+          src="{{ rest.logo_url }}"
+          alt="{{ rest.nome_fantasia }}"
+          style="width: 100%; height: 100%; object-fit: cover"
+        />
         <span class="badge bg-danger position-absolute m-2 top-0 start-0 fs-6">
           {% if rest.taxa_entrega == 0 %}GRÁTIS{% else %}R$ {{
           "%.2f"|format(rest.taxa_entrega) }}{% endif %}
         </span>
       </div>
+      {% else %}
+      <div
+        style="
+          background-color: var(--purple-bg);
+          height: 150px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--purple-dark);
+        "
+      >
+        <i class="fas fa-utensils fa-3x"></i>
+        <span class="badge bg-danger position-absolute m-2 top-0 start-0 fs-6">
+          {% if rest.taxa_entrega == 0 %}GRÁTIS{% else %}R$ {{
+          "%.2f"|format(rest.taxa_entrega) }}{% endif %}
+        </span>
+      </div>
+      {% endif %}
 
       <div class="card-body">
         <h5 class="card-title">
           <a
             href="{{ url_for('auth.view_restaurant', restaurante_id=rest.id) }}"
             class="text-decoration-none text-dark fw-bold"
-            >{{ rest.nome_fantasia }}</a
           >
+            {{ rest.nome_fantasia }}
+          </a>
         </h5>
         <p class="card-text text-muted small">
           Sabor autêntico, direto na sua casa.
@@ -111,8 +143,9 @@
           <span
             class="badge bg-success"
             style="background-color: var(--purple-light) !important"
-            >{{ rest.tempo_medio_entrega }} min</span
           >
+            {{ rest.tempo_medio_entrega }} min
+          </span>
         </div>
       </div>
     </div>

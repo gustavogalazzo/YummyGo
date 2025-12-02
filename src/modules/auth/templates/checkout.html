@@ -12,13 +12,21 @@
 
     <div class="card mb-4 shadow-sm">
       <div
-        class="card-header bg-purple text-white"
+        class="card-header bg-purple text-white d-flex align-items-center"
         style="background-color: var(--purple-dark) !important"
       >
+        {% if restaurante.logo_url %}
+        <img
+          src="{{ restaurante.logo_url }}"
+          class="rounded-circle me-2 border border-white"
+          style="width: 30px; height: 30px; object-fit: cover"
+        />
+        {% endif %}
         <h5 class="mb-0">
           1. Resumo do Pedido (Restaurante: {{ restaurante.nome_fantasia }})
         </h5>
       </div>
+
       <div class="card-body">
         <table class="table table-sm">
           <thead>

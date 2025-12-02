@@ -67,6 +67,9 @@ class User(db.Model, UserMixin):
     # 'uselist=False' diz ao SQLAlchemy que isto é "Um-para-Um"
     restaurante = db.relationship('Restaurante', backref='dono', uselist=False)
 
+    pontos = db.Column(db.Integer, default=0)
+    nivel = db.Column(db.String(20), default='Bronze')
+
     
     def __repr__(self):
         return f'<User {self.nome_completo} (ID: {self.id})>'

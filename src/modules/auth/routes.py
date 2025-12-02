@@ -4,12 +4,13 @@ Módulo de Autenticação (Auth) - Rotas
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 import datetime
 from src.modules.client.forms import CheckoutForm
-from src.models import User, Restaurante, Produto, Pedido, ItemPedido, Endereco
+from src.models import User, Restaurante, Produto, Pedido, ItemPedido, Endereco, Categoria
 from flask_login import login_user, logout_user, current_user, login_required
 from src.extensions import oauth, db  # Importa o 'oauth' e 'db'
 from sqlalchemy.exc import IntegrityError # Para tratar erros da DB
 from flask import current_app, session, abort
 import stripe
+from sqlalchemy import or_
 from src.services.geo_service import haversine
 from src.modules.auth.forms import RegistrationForm, LoginForm, EmailLoginForm, VerifyOtpForm, PhoneLoginForm
 from src.modules.auth.services import create_new_user, generate_and_send_otp, generate_and_send_sms_otp
@@ -43,21 +44,6 @@ def home():
     restaurantes_proximos = []
     
     for rest in todos_restaurantes:
-        # Usamos as coordenadas que SIMULAMOS no passo anterior (para testes)
-        # Na verdade, o Restaurante TAMBÉM precisaria de coordenadas, mas vamos usar as do cliente
-        
-        # Para simplificar o teste, vamos apenas assumir que, se o cliente tem coordenadas,
-        # todos os restaurantes "próximos" aparecem.
-        # Se for um projeto real, aqui você implementaria:
-        # 
-        # rest_lat = rest.endereco.latitude 
-        # rest_lon = rest.endereco.longitude
-        # 
-        # if cliente_lat and haversine(cliente_lat, cliente_lon, rest_lat, rest_lon) <= RAIO_MAXIMO_KM:
-        #   restaurantes_proximos.append(rest)
-        
-        # Como não temos coordenadas para o Restaurante, vamos apenas garantir que 
-        # a filtragem ocorre se o cliente estiver logado e tiver um endereço.
         if cliente_lat:
             restaurantes_proximos.append(rest)
         elif not current_user.is_authenticated:
@@ -527,7 +513,8 @@ def view_cart():
                 'nome': p.nome,
                 'preco': p.preco,
                 'quantidade': quantidade,
-                'subtotal': subtotal
+                'subtotal': subtotal,
+                'imagem': p.imagem_url
             })
             total_carrinho += subtotal
             
@@ -622,6 +609,11 @@ def checkout():
         total_produtos += subtotal
         
     taxa_entrega = restaurante.taxa_entrega
+
+    if current_user.nivel == 'Ouro':
+        taxa_entrega = 0.0
+        flash('👑 Cliente OURO detetado! Você ganhou ENTREGA GRÁTIS neste pedido.', 'success')
+
     total_final = total_produtos + taxa_entrega
     
     # Adiciona a taxa de entrega como um item para o Stripe
@@ -771,3 +763,51 @@ def register():
             flash('Ocorreu um erro ao criar a sua conta. Tente novamente.', 'danger')
 
     return render_template('register.html', form=form)
+
+# --- Rota de Pesquisa ---
+@auth_bp.route('/search')
+def search():
+    """
+    Processa a pesquisa por restaurantes e produtos.
+    """
+    query = request.args.get('query', '') # Pega o termo de busca da URL (?query=...)
+    
+    if not query:
+        flash('Por favor, insira um termo de busca.', 'warning')
+        return redirect(url_for('auth.home'))
+
+    search_term = f'%{query}%' # Prepara para busca parcial (LIKE)
+    
+    # 1. Busca por Restaurantes (Nome Fantasia ou Razão Social)
+    restaurantes_encontrados = Restaurante.query.filter(
+        or_(
+            Restaurante.nome_fantasia.ilike(search_term),
+            Restaurante.razao_social.ilike(search_term)
+        )
+    ).all()
+
+    # 2. Busca por Produtos (Nome ou Descrição)
+    produtos_encontrados = Produto.query.filter(
+        or_(
+            Produto.nome.ilike(search_term),
+            Produto.descricao.ilike(search_term)
+        ),
+        Produto.disponivel == True
+    ).all()
+    
+    # Encontra os restaurantes que vendem esses produtos
+    rest_ids_por_produto = {p.restaurante_id for p in produtos_encontrados}
+    restaurantes_por_produto = Restaurante.query.filter(Restaurante.id.in_(rest_ids_por_produto)).all()
+
+    # 3. Busca por Categoria (Novo!)
+    categorias_encontradas = Categoria.query.filter(Categoria.nome.ilike(search_term)).all()
+    rest_ids_por_categoria = {c.restaurante_id for c in categorias_encontradas}
+    restaurantes_por_categoria = Restaurante.query.filter(Restaurante.id.in_(rest_ids_por_categoria)).all()
+    
+    # Combina todos os resultados únicos
+    todos_restaurantes_unicos = list(set(restaurantes_encontrados + restaurantes_por_produto + restaurantes_por_categoria))
+    
+    return render_template('search_results.html', 
+                           query=query, 
+                           restaurantes=todos_restaurantes_unicos,
+                           produtos=produtos_encontrados)

@@ -37,6 +37,7 @@ class Produto(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.Text, nullable=True)
     preco = db.Column(db.Float, nullable=False)
+    imagem_url = db.Column(db.String(255), nullable=True)
     disponivel = db.Column(db.Boolean, default=True)
     
     # Chave Estrangeira: A que categoria este produto pertence?

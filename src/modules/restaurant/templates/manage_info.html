@@ -6,34 +6,42 @@
     </h2>
 
     <div class="card shadow-sm p-4">
-      <p class="text-muted">
-        Aqui você pode gerir os dados essenciais do seu restaurante.
-      </p>
+      {% if restaurante.logo_url %}
+      <div class="text-center mb-4">
+        <img
+          src="{{ restaurante.logo_url }}"
+          alt="Logo Atual"
+          class="rounded-circle shadow-sm"
+          style="
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 4px solid var(--purple-light);
+          "
+        />
+        <p class="text-muted small mt-2">Logo Atual</p>
+      </div>
+      {% endif %}
+
       <hr />
 
-      <form method="POST" action="">
+      <form method="POST" action="" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
           {{ form.nome_fantasia.label(class="form-label") }} {{
-          form.nome_fantasia(class="form-control") }} {% for error in
-          form.nome_fantasia.errors %}
-          <div class="text-danger small">{{ error }}</div>
-          {% endfor %}
+          form.nome_fantasia(class="form-control") }}
         </div>
 
         <div class="row">
           <div class="col-md-6 mb-3">
             {{ form.cnpj.label(class="form-label") }} {{
-            form.cnpj(class="form-control") }} {% for error in form.cnpj.errors
-            %}
-            <div class="text-danger small">{{ error }}</div>
-            {% endfor %}
+            form.cnpj(class="form-control") }}
           </div>
+
           <div class="col-md-6 mb-3">
-            {{ form.logo_url.label(class="form-label") }} {{
-            form.logo_url(class="form-control", placeholder="URL da Logomarca")
-            }}
+            {{ form.logo.label(class="form-label") }} {{
+            form.logo(class="form-control") }}
           </div>
         </div>
 

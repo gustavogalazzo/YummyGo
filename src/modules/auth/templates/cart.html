@@ -27,9 +27,10 @@
         </h5>
       </div>
       <div class="card-body p-0">
-        <table class="table table-striped mb-0">
+        <table class="table table-striped mb-0 align-middle">
           <thead>
             <tr>
+              <th style="width: 100px">Foto</th>
               <th>Produto</th>
               <th class="text-end">Preço Unit.</th>
               <th class="text-center">Quantidade</th>
@@ -40,6 +41,35 @@
           <tbody>
             {% for item in itens_carrinho %}
             <tr>
+              <td>
+                {% if item.imagem %}
+                <img
+                  src="{{ item.imagem }}"
+                  alt="{{ item.nome }}"
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                  "
+                />
+                {% else %}
+                <div
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    background-color: #eee;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <i class="fas fa-utensils text-muted"></i>
+                </div>
+                {% endif %}
+              </td>
+
               <td>{{ item.nome }}</td>
               <td class="text-end">R$ {{ "%.2f"|format(item.preco) }}</td>
               <td class="text-center">{{ item.quantidade }}</td>
@@ -60,7 +90,7 @@
           </tbody>
           <tfoot>
             <tr class="fw-bold table-light">
-              <td colspan="3" class="text-end">Total dos Produtos:</td>
+              <td colspan="4" class="text-end">Total dos Produtos:</td>
               <td colspan="2" class="text-end">
                 R$ {{ "%.2f"|format(total_carrinho) }}
               </td>

@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block content %}
+<h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+  Resultados da Busca
+</h2>
+<p class="lead text-muted">Resultados para: <strong>"{{ query }}"</strong></p>
+<hr />
+
+{% if not restaurantes %}
+<div class="alert alert-warning">Nenhum restaurante encontrado.</div>
+{% else %}
+<div class="row">
+  {% for rest in restaurantes %}
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">
+          <a
+            href="{{ url_for('auth.view_restaurant', restaurante_id=rest.id) }}"
+            class="text-decoration-none text-dark"
+            >{{ rest.nome_fantasia }}</a
+          >
+        </h5>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<p class="text-center mt-4">
+  <a href="{{ url_for('auth.home') }}">← Voltar à Home</a>
+</p>
+{% endblock content %}

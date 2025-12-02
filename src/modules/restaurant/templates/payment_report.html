@@ -1,0 +1,144 @@
+{% extends "base.html" %} {% block content %}
+<div class="container py-4">
+  <h2 class="fw-bold mb-4" style="color: var(--purple-dark)">
+    <i class="fas fa-wallet me-2"></i> Relatório de Tipos de Pagamento
+  </h2>
+
+  <div class="card shadow-sm mb-4 p-3 bg-light">
+    <form
+      method="GET"
+      action="{{ url_for('restaurant.payment_report') }}"
+      class="row g-3 align-items-end"
+    >
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Data Início:</label>
+        <input
+          type="date"
+          name="data_inicio"
+          class="form-control"
+          value="{{ data_inicio }}"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Data Final:</label>
+        <input
+          type="date"
+          name="data_fim"
+          class="form-control"
+          value="{{ data_fim }}"
+        />
+      </div>
+      <div class="col-md-4">
+        <button
+          type="submit"
+          class="btn btn-purple text-white w-100"
+          style="background-color: var(--purple-dark)"
+        >
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-bold">Detalhamento Financeiro</div>
+        <div class="card-body">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Tipo de Pagamento</th>
+                <th class="text-end">Valor Total (R$)</th>
+                <th class="text-center">Representatividade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in relatorio %}
+              <tr>
+                <td class="fw-bold">{{ item.tipo }}</td>
+                <td class="text-end">R$ {{ "%.2f"|format(item.valor) }}</td>
+                <td class="text-center">
+                  <div class="progress" style="height: 20px">
+                    <div
+                      class="progress-bar bg-purple"
+                      role="progressbar"
+                      style="width: {{ item.perc }}%; background-color: var(--purple-light);"
+                      aria-valuenow="{{ item.perc }}"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      {{ "%.1f"|format(item.perc) }}%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-group-divider fw-bold">
+              <tr>
+                <td>TOTAL</td>
+                <td class="text-end">R$ {{ "%.2f"|format(total_geral) }}</td>
+                <td>100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-bold">Valor Total por Tipo</div>
+        <div class="card-body">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-center">
+    <a href="{{ url_for('restaurant.dashboard') }}" class="text-decoration-none"
+      >← Voltar ao Portal</a
+    >
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ grafico_labels | tojson }};
+  const dataValues = {{ grafico_data | tojson }};
+
+  const ctx = document.getElementById('paymentChart').getContext('2d');
+
+  if (labels.length === 0) {
+      ctx.font = "14px Arial";
+      ctx.fillText("Sem vendas no período.", 50, 50);
+  } else {
+      new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'Faturamento (R$)',
+                  data: dataValues,
+                  backgroundColor: [
+                      '#4285F4', // Azul
+                      '#34A853', // Verde
+                      '#FBBC05', // Amarelo
+                      '#EA4335', // Vermelho
+                      '#9b59b6'  // Roxo
+                  ],
+              }]
+          },
+          options: {
+              indexAxis: 'y', // ISSO FAZ O GRÁFICO FICAR HORIZONTAL
+              responsive: true,
+              plugins: {
+                  legend: { display: false }
+              }
+          }
+      });
+  }
+</script>
+{% endblock %}

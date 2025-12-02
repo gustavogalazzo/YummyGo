@@ -29,6 +29,8 @@ class Pedido(db.Model):
     # Detalhes da entrega (copiados do endereço no momento da compra)
     endereco_entrega = db.Column(db.String(255), nullable=False)
 
+    tipo_pagamento = db.Column(db.String(50), nullable=False, default='Cartão de Crédito')
+
     # Relacionamento: Um Pedido tem muitos ItensPedido
     itens = db.relationship('ItemPedido', backref='pedido', lazy=True, cascade="all, delete-orphan")
 

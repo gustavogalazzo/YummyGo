@@ -1,15 +1,11 @@
-"""
-Formulários do Módulo do Restaurante (Flask-WTF)
-"""
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed 
 from wtforms import StringField, SubmitField, IntegerField, FloatField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, ValidationError
 from src.models import Restaurante
 
 class RestaurantRegistrationForm(FlaskForm):
-    """
-    Formulário de Registo de novo restaurante.
-    """
+   
     nome_fantasia = StringField('Nome do Restaurante (Nome Fantasia)', 
                                 validators=[DataRequired(), Length(max=100)])
     
@@ -53,6 +49,13 @@ class ProductForm(FlaskForm):
     nome = StringField('Nome do Produto', validators=[DataRequired(), Length(max=100)])
     descricao = TextAreaField('Descrição (opcional)')
     preco = FloatField('Preço (ex: 12.50)', validators=[DataRequired()])
+    
+    # --- NOVO CAMPO DE IMAGEM ---
+    imagem = FileField('Foto do Produto', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg', 'webp'], 'Apenas imagens são permitidas!')
+    ])
+    # ----------------------------
+
     disponivel = BooleanField('Disponível', default=True)
     
     # Este campo será preenchido dinamicamente pela nossa rota
@@ -78,6 +81,8 @@ class UpdateRestaurantInfoForm(FlaskForm):
                               validators=[DataRequired()])
     tempo_medio_entrega = IntegerField('Tempo Médio de Entrega (em minutos, ex: 30)',
                                        validators=[DataRequired()])
-    logo_url = StringField('URL da Logomarca (Futuro Upload)', validators=[Length(max=255)]) # Placeholder
+    logo = FileField('Logomarca do Restaurante', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg', 'webp'], 'Apenas imagens são permitidas!')
+    ])
     
     submit = SubmitField('Salvar Informações')
