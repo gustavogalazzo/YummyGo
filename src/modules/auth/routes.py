@@ -560,157 +560,90 @@ def remove_from_cart(produto_id):
 @auth_bp.route('/checkout', methods=['GET', 'POST'])
 @login_required
 def checkout():
-    """
-    GET: Mostra o resumo do carrinho e a seleção de endereço.
-    POST: Cria o Pedido na DB E gera a Sessão de Checkout do Stripe.
-    """
-    
-    # --- (Início da Lógica GET - Sem Alterações) ---
+    # 1. Carregar Carrinho
     cart = session.get('cart', {'items': {}, 'restaurant_id': None})
-    if not cart['items'] or not cart['restaurant_id']:
-        flash('O seu carrinho está vazio. Adicione itens primeiro.', 'info')
-        return redirect(url_for('auth.home'))
+    if not cart['items']: return redirect(url_for('auth.home'))
 
-    restaurante = Restaurante.query.get_or_404(cart['restaurant_id'])
-    product_ids = [int(pid) for pid in cart['items'].keys()]
+    restaurante = Restaurante.query.get(cart['restaurant_id'])
+    product_ids = [int(k) for k in cart['items'].keys()]
     produtos = Produto.query.filter(Produto.id.in_(product_ids)).all()
     
-    total_produtos = 0.0
-    itens_para_template = []
-    
-    # --- MUDANÇA: Lista de itens para o Stripe ---
-    line_items_for_stripe = [] 
+    # Calcular Totais
+    total_produtos = 0
+    itens_template = []
     
     for p in produtos:
-        product_id_str = str(p.id)
-        quantidade = cart['items'][product_id_str]
-        subtotal = p.preco * quantidade
-        
-        # Lista para o template (igual a antes)
-        itens_para_template.append({
-            'nome': p.nome,
-            'preco': p.preco,
-            'quantidade': quantidade,
-            'subtotal': subtotal
-        })
-        
-        # --- MUDANÇA: Lista para o Stripe (formato específico) ---
-        line_items_for_stripe.append({
-            "price_data": {
-                "currency": "brl", # Moeda (Real Brasileiro)
-                "product_data": {
-                    "name": p.nome,
-                },
-                "unit_amount": int(p.preco * 100), # Preço em CENTAVOS
-            },
-            "quantity": quantidade,
-        })
-        
+        qtd = cart['items'][str(p.id)]
+        subtotal = p.preco * qtd
         total_produtos += subtotal
+        itens_template.append({'nome': p.nome, 'preco': p.preco, 'quantidade': qtd, 'subtotal': subtotal})
         
-    taxa_entrega = restaurante.taxa_entrega
-
-    if current_user.nivel == 'Ouro':
-        taxa_entrega = 0.0
-        flash('👑 Cliente OURO detetado! Você ganhou ENTREGA GRÁTIS neste pedido.', 'success')
-
-    total_final = total_produtos + taxa_entrega
+    taxa = restaurante.taxa_entrega
+    # Gamification: Desconto Ouro
+    if current_user.nivel == 'Ouro': taxa = 0.0
     
-    # Adiciona a taxa de entrega como um item para o Stripe
-    line_items_for_stripe.append({
-        "price_data": {
-            "currency": "brl",
-            "product_data": {
-                "name": "Taxa de Entrega",
-            },
-            "unit_amount": int(taxa_entrega * 100), # Preço em CENTAVOS
-        },
-        "quantity": 1,
-    })
+    total_final = total_produtos + taxa
     
     form = CheckoutForm()
-    form.endereco_id.choices = [
-        (end.id, f"{end.rua}, {end.numero} - {end.bairro}, {end.cidade}")
-        for end in current_user.enderecos
-    ]
-    # --- (Fim da Lógica GET) ---
+    form.endereco_id.choices = [(e.id, f"{e.rua}, {e.numero}") for e in current_user.enderecos]
 
-
-    # --- LÓGICA POST (Finalizar o Pedido) ---
     if form.validate_on_submit():
-        
-        endereco_id_selecionado = form.endereco_id.data
-        endereco_obj = Endereco.query.get_or_404(endereco_id_selecionado)
-        
-        if endereco_obj.user_id != current_user.id:
-            abort(403)
-            
-        endereco_texto = f"{endereco_obj.rua}, {endereco_obj.numero}, {endereco_obj.bairro}, {endereco_obj.cidade}/{endereco_obj.estado} - CEP: {endereco_obj.cep}"
-        
         try:
-            # 1. CRIA O PEDIDO na DB (igual a antes)
-            novo_pedido = Pedido(
+            # Criar Pedido (JÁ COMO RECEBIDO - FORÇADO)
+            end = Endereco.query.get(form.endereco_id.data)
+            
+            pedido = Pedido(
                 cliente_id=current_user.id,
                 restaurante_id=restaurante.id,
                 preco_total=total_final,
-                status='Pendente de Pagamento',
-                endereco_entrega=endereco_texto
+                status='Recebido', # <--- AQUI ESTÁ O TRUQUE (Era 'Pendente')
+                endereco_entrega=f"{end.rua}, {end.numero} - {end.cep}"
             )
-            db.session.add(novo_pedido)
-            db.session.commit() 
-            
-            # 2. CRIA OS ITENS DO PEDIDO na DB (igual a antes)
-            for p in produtos:
-                product_id_str = str(p.id)
-                novo_item = ItemPedido(
-                    pedido_id=novo_pedido.id,
-                    produto_id=p.id,
-                    quantidade=cart['items'][product_id_str],
-                    preco_unitario_na_compra=p.preco
-                )
-                db.session.add(novo_item)
-            
+            db.session.add(pedido)
             db.session.commit()
             
-            # --- MUDANÇA: LÓGICA DO STRIPE ---
+            # Criar Itens
+            for p in produtos:
+                item = ItemPedido(pedido_id=pedido.id, produto_id=p.id, 
+                                  quantidade=cart['items'][str(p.id)], preco_unitario_na_compra=p.preco)
+                db.session.add(item)
             
-            # 3. Define a Chave Secreta
-            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            # --- LÓGICA DE GAMIFICAÇÃO (Trazida do Webhook para cá) ---
+            # Como estamos a "fingir" que pagou, damos os pontos agora!
+            pontos_ganhos = int(total_final * 10)
+            current_user.pontos += pontos_ganhos
             
-            # 4. Define as URLs de retorno
-            success_url = url_for('auth.order_success', _external=True)
-            cancel_url = url_for('auth.order_cancel', _external=True)
+            # Verifica Level Up
+            if current_user.pontos >= 5000:
+                current_user.nivel = 'Ouro'
+            elif current_user.pontos >= 2000:
+                current_user.nivel = 'Prata'
+            else:
+                current_user.nivel = 'Bronze'
+            
+            flash(f'Pagamento (Simulado) Aprovado! Ganhou {pontos_ganhos} pontos!', 'success')
 
-            # 5. Cria a "Sessão de Checkout"
-            checkout_session = stripe.checkout.Session.create(
-                line_items=line_items_for_stripe,
-                mode='payment',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                # A "CHAVE MESTRA": Liga este pagamento ao nosso Pedido.id
-                client_reference_id=novo_pedido.id 
-            )
+            # Gerar PIN de 4 dígitos (simples e fácil de falar)
+            import random
+            pin_gerado = str(random.randint(1000, 9999))
+
+            pedido.delivery_pin = pin_gerado
+            # ----------------------------------------------------------
+
+            db.session.commit()
             
-            # 6. Redireciona o cliente para a página de pagamento do Stripe
-            return redirect(checkout_session.url, code=303)
+            # Limpa o carrinho e vai para o sucesso
+            session.pop('cart', None)
+            return redirect(url_for('auth.home')) # Ou redireciona para 'auth.order_success' se preferir
         
         except Exception as e:
             db.session.rollback()
-            flash('Erro ao criar o seu pedido. Tente novamente.', 'danger')
-            print(f"Erro no checkout (Stripe): {e}")
-            
-    # --- (Fim da Lógica POST) ---
+            flash(f'Erro ao processar pedido: {e}', 'danger')
+            print(f"Erro: {e}")
 
-    return render_template(
-        'checkout.html',
-        form=form,
-        itens_carrinho=itens_para_template,
-        restaurante=restaurante,
-        total_produtos=total_produtos,
-        taxa_entrega=taxa_entrega,
-        total_final=total_final
-    )
-        
+    return render_template('checkout.html', form=form, itens_carrinho=itens_template, 
+                           restaurante=restaurante, total_produtos=total_produtos, 
+                           taxa_entrega=taxa, total_final=total_final)
 
 # --- ROTAS DE RETORNO DO PAGAMENTO (STRIPE) ---
 

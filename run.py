@@ -70,6 +70,16 @@ def stripe_webhook():
                     # 3. Salva tudo
                     db.session.commit() 
                     print(f"✅ WEBHOOK: Pedido #{pedido_id} processado com sucesso.")
+
+                    # --- ENVIAR E-MAIL DE CONFIRMAÇÃO ---
+                    user = User.query.get(pedido.cliente_id)
+                    send_email(
+                        subject=f"YummyGo: Pedido #{pedido.id} Confirmado!",
+                        recipients=[user.email],
+                        template_name="order_confirmed", # Precisamos criar este template
+                        pedido=pedido,
+                        nome=user.nome_completo
+                    )
                 
     return 'OK', 200
 

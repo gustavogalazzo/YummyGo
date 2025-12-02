@@ -11,6 +11,7 @@ from src.models import Restaurante, Categoria, Produto, Pedido, ItemPedido, Aval
 from flask import abort 
 from sqlalchemy import func, case
 from src.services.upload_service import upload_image
+from src.services.email_service import send_email
 from datetime import datetime, timedelta
 
 # 1. CRIAÇÃO DO BLUEPRINT (Isto é essencial para o __init__.py encontrar)
@@ -201,23 +202,76 @@ def manage_orders():
         Pedido.status.notin_(['Concluído', 'Cancelado'])
     ).order_by(Pedido.data_criacao.desc()).all()
 
-    if form.validate_on_submit():
+    # Usamos request.method == 'POST' para capturar tanto o botão de 'Avançar' quanto o de 'PIN'
+    if request.method == 'POST':
         pedido_id = request.form.get('pedido_id') 
+        acao = request.form.get('acao') # 'avancar' ou 'validar_entrega'
         pedido = Pedido.query.get(pedido_id)
         
         if pedido and pedido.restaurante_id == restaurante.id:
-            try:
-                current_index = STATUS_FLUXO.index(pedido.status)
-                if current_index < len(STATUS_FLUXO) - 1:
-                    pedido.status = STATUS_FLUXO[current_index + 1]
+            
+            # --- CASO 1: VALIDAR PIN (Entrega) ---
+            if acao == 'validar_entrega':
+                pin_digitado = request.form.get('delivery_pin')
+                
+                # Compara o PIN digitado com o salvo na DB
+                if pin_digitado == pedido.delivery_pin:
+                    pedido.status = 'Concluído'
                     db.session.commit()
-                    flash(f"Pedido #{pedido.id} atualizado para '{pedido.status}'", 'success')
-            except ValueError:
-                flash('Não é possível atualizar este status.', 'danger')
+                    flash(f'Pedido #{pedido.id} entregue com sucesso!', 'success')
+                    
+                    # (Opcional) Enviar e-mail de conclusão
+                    try:
+                        send_email(
+                            subject=f"Seu pedido #{pedido.id} foi entregue!",
+                            recipients=[pedido.cliente.email],
+                            template_name="order_update", 
+                            pedido=pedido,
+                            status="Concluído",
+                            nome=pedido.cliente.nome_completo
+                        )
+                    except Exception as e:
+                        print(f"Erro ao enviar email: {e}")
+
+                else:
+                    flash('Código de entrega INCORRETO! Tente novamente.', 'danger')
+
+            # --- CASO 2: AVANÇAR STATUS (Normal) ---
+            elif acao == 'avancar':
+                try:
+                    current_index = STATUS_FLUXO.index(pedido.status)
+                    
+                    # Verifica se pode avançar e se não é o passo de entrega (que exige PIN)
+                    if current_index < len(STATUS_FLUXO) - 1:
+                        prox_status = STATUS_FLUXO[current_index + 1]
+                        
+                        # Bloqueio de segurança: Não permite pular para 'Concluído' sem PIN
+                        if prox_status == 'Concluído':
+                             flash('Use o campo de PIN para concluir a entrega.', 'warning')
+                        else:
+                            pedido.status = prox_status
+                            db.session.commit()
+                            flash(f"Pedido #{pedido.id} atualizado para '{pedido.status}'", 'success')
+
+                            # --- NOTIFICAR CLIENTE (Sua lógica existente) ---
+                            try:
+                                send_email(
+                                    subject=f"Atualização do Pedido #{pedido.id}: {pedido.status}",
+                                    recipients=[pedido.cliente.email],
+                                    template_name="order_update",
+                                    pedido=pedido,
+                                    status=pedido.status,
+                                    nome=pedido.cliente.nome_completo
+                                )
+                            except Exception as e:
+                                print(f"Erro ao enviar email: {e}")
+
+                except ValueError:
+                    flash('Não é possível atualizar este status.', 'danger')
+        
         return redirect(url_for('restaurant.manage_orders'))
 
     return render_template('manage_orders.html', pedidos=pedidos, form=form, status_fluxo=STATUS_FLUXO)
-
 
 # 8. Rota de Informações
 @restaurant_bp.route('/info', methods=['GET', 'POST'])
@@ -346,3 +400,22 @@ def payment_report():
     return render_template('payment_report.html', relatorio=relatorio_dados, total_geral=faturamento_total_geral,
                            data_inicio=data_inicio.strftime('%Y-%m-%d'), data_fim=data_fim.strftime('%Y-%m-%d'),
                            grafico_labels=labels_grafico, grafico_data=valores_grafico)
+
+# Nova rota para cancelar
+@restaurant_bp.route('/pedido/cancelar/<int:pedido_id>', methods=['POST'])
+@login_required
+def cancel_order(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    # Verificações de segurança...
+    
+    pedido.status = 'Cancelado'
+    # Aqui entraria a lógica complexa do Stripe Refund API (stripe.Refund.create...)
+    # Por agora, apenas marcamos na DB:
+    
+    db.session.commit()
+    flash('Pedido cancelado. Lembre-se de reembolsar no painel do Stripe.', 'warning')
+    
+    # Enviar email de aviso
+    send_email("Pedido Cancelado", [pedido.cliente.email], "order_cancelled", nome=pedido.cliente.nome_completo)
+    
+    return redirect(url_for('restaurant.manage_orders'))

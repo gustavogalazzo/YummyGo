@@ -10,7 +10,10 @@ from src.extensions import db
 from src.modules.client.forms import UpdateProfileForm, AddressForm
 from src.models import User, Endereco, Pedido
 from flask import abort
-from src.services.geo_service import get_coordinates # <-- Import necessário para o Passo 4
+from src.services.geo_service import get_coordinates
+from io import BytesIO
+from xhtml2pdf import pisa
+from flask import make_response
 
 # 1. Criação do Blueprint
 client_bp = Blueprint('client', __name__, template_folder='templates')
@@ -158,3 +161,27 @@ def track_order(pedido_id):
         steps=steps,
         current_step_index=current_step_index
     )
+
+@client_bp.route('/pedido/<int:pedido_id>/pdf')
+@login_required
+def download_invoice(pedido_id):
+    pedido = Pedido.query.get_or_404(pedido_id)
+    
+    # Segurança: Só o dono ou o restaurante podem ver
+    if pedido.cliente_id != current_user.id and current_user.role != 'restaurante':
+        abort(403)
+
+    # Renderiza o HTML da nota
+    html = render_template('invoice_pdf.html', pedido=pedido)
+    
+    # Converte para PDF
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+    
+    if not pdf.err:
+        response = make_response(result.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=Nota_Fiscal_{pedido.id}.pdf'
+        return response
+    
+    return "Erro ao gerar PDF", 500

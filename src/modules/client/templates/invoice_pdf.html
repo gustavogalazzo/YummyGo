@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Helvetica, sans-serif;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>YummyGo - Comprovante de Pedido</h1>
+      <h3>Pedido #{{ pedido.id }}</h3>
+    </div>
+
+    <p><strong>Data:</strong> {{ pedido.data_criacao.strftime('%d/%m/%Y') }}</p>
+    <p><strong>Cliente:</strong> {{ pedido.cliente.nome_completo }}</p>
+    <p><strong>Restaurante:</strong> {{ pedido.restaurante.nome_fantasia }}</p>
+    <p><strong>Endereço de Entrega:</strong> {{ pedido.endereco_entrega }}</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qtd</th>
+          <th>Preço Unit.</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in pedido.itens %}
+        <tr>
+          <td>{{ item.produto.nome }}</td>
+          <td>{{ item.quantidade }}</td>
+          <td>R$ {{ "%.2f"|format(item.preco_unitario_na_compra) }}</td>
+          <td>
+            R$ {{ "%.2f"|format(item.preco_unitario_na_compra * item.quantidade)
+            }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3 style="text-align: right">
+      Total: R$ {{ "%.2f"|format(pedido.preco_total) }}
+    </h3>
+    <p>Status: {{ pedido.status }}</p>
+  </body>
+</html>

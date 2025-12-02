@@ -34,6 +34,8 @@ class Pedido(db.Model):
     # Relacionamento: Um Pedido tem muitos ItensPedido
     itens = db.relationship('ItemPedido', backref='pedido', lazy=True, cascade="all, delete-orphan")
 
+    delivery_pin = db.Column(db.String(6), nullable=True)
+
     def __repr__(self):
         return f'<Pedido {self.id} - Status: {self.status}>'
 

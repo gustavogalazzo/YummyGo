@@ -1,80 +1,156 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        
-        <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark);">Pedidos Recebidos</h2>
-        <p class="lead text-muted">Pedidos em aberto para o seu restaurante ({{ current_user.restaurante.nome_fantasia }}).</p>
-        
-        <hr class="mb-4">
+  <div class="col-lg-10">
+    <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
+      Pedidos Recebidos
+    </h2>
+    <p class="lead text-muted">
+      Pedidos em aberto para o seu restaurante ({{
+      current_user.restaurante.nome_fantasia }}).
+    </p>
 
-        {% if not pedidos %}
-            <div class="alert alert-success text-center py-4">
-                🎉 Nenhum pedido em aberto. Está calmo por aqui!
-            </div>
-        {% else %}
-            {% for pedido in pedidos %}
-                <div class="card mb-4 shadow-sm" style="border-left: 5px solid var(--purple-dark);">
-                    
-                    <div class="card-body">
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title fw-bold mb-0">Pedido #{{ pedido.id }}</h5>
-                            
-                            {% if pedido.status == 'Em Preparo' %}
-                                <span class="badge bg-warning text-dark fs-6">{{ pedido.status }}</span>
-                            {% elif pedido.status == 'Em Rota de Entrega' %}
-                                <span class="badge bg-primary fs-6">{{ pedido.status }}</span>
-                            {% elif pedido.status == 'Recebido' %}
-                                <span class="badge bg-success fs-6">Novo Pedido</span>
-                            {% else %}
-                                <span class="badge bg-secondary fs-6">{{ pedido.status }}</span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row small text-muted mb-3">
-                            <div class="col-md-6">
-                                <i class="fas fa-user me-1"></i> Cliente: **{{ pedido.cliente.nome_completo }}**<br>
-                                <i class="fas fa-money-bill-wave me-1"></i> Total: R$ **{{ "%.2f"|format(pedido.preco_total) }}**
-                            </div>
-                            <div class="col-md-6">
-                                <i class="fas fa-calendar-alt me-1"></i> Data: {{ pedido.data_criacao.strftime('%d/%m/%Y às %H:%M') }}<br>
-                                <i class="fas fa-map-marker-alt me-1"></i> Entrega: {{ pedido.endereco_entrega | truncate(60, True) }}
-                            </div>
-                        </div>
+    <hr class="mb-4" />
 
-                        <h6 classfw-bold mb-1 mt-3" style="color: var(--purple-light);">Itens:</h6>
-                        <ul class="list-group list-group-flush small mb-3">
-                            {% for item in pedido.itens %}
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>{{ item.quantidade }}x {{ item.produto.nome }}</span>
-                                    <span class="fw-bold">R$ {{ "%.2f"|format(item.preco_unitario_na_compra) }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-
-                        {% if pedido.status in status_fluxo and pedido.status != status_fluxo[-1] %}
-                            <hr>
-                            <form method="POST" action="{{ url_for('restaurant.manage_orders') }}" class="mt-3">
-                                {{ form.hidden_tag() }}
-                                <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
-                                
-                                {% set current_index = status_fluxo.index(pedido.status) %}
-                                {% set next_status = status_fluxo[current_index + 1] %}
-                                
-                                <p class="small mb-2">Próximo passo: <span class="fw-bold text-success">{{ next_status }}</span></p>
-                                
-                                <button type="submit" class="btn btn-purple" style="background-color: var(--purple-dark);">
-                                    Avançar para {{ next_status }}
-                                </button>
-                            </form>
-                        {% endif %}
-
-                    </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+    {% if not pedidos %}
+    <div class="alert alert-success text-center py-4">
+      🎉 Nenhum pedido em aberto. Está calmo por aqui!
     </div>
+    {% else %} {% for pedido in pedidos %}
+    <div
+      class="card mb-4 shadow-sm"
+      style="border-left: 5px solid var(--purple-dark)"
+    >
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="card-title fw-bold mb-0">Pedido #{{ pedido.id }}</h5>
+
+          {% if pedido.status == 'Em Preparo' %}
+          <span class="badge bg-warning text-dark fs-6"
+            >{{ pedido.status }}</span
+          >
+          {% elif pedido.status == 'Em Rota de Entrega' %}
+          <span class="badge bg-primary fs-6">{{ pedido.status }}</span>
+          {% elif pedido.status == 'Recebido' %}
+          <span class="badge bg-success fs-6">Novo Pedido</span>
+          {% else %}
+          <span class="badge bg-secondary fs-6">{{ pedido.status }}</span>
+          {% endif %}
+        </div>
+
+        <div class="row small text-muted mb-3">
+          <div class="col-md-6">
+            <i class="fas fa-user me-1"></i> Cliente:
+            <strong>{{ pedido.cliente.nome_completo }}</strong><br />
+            <i class="fas fa-money-bill-wave me-1"></i> Total: R$
+            <strong>{{ "%.2f"|format(pedido.preco_total) }}</strong>
+          </div>
+          <div class="col-md-6">
+            <i class="fas fa-calendar-alt me-1"></i> Data: {{
+            pedido.data_criacao.strftime('%d/%m/%Y às %H:%M') }}<br />
+            <i class="fas fa-map-marker-alt me-1"></i> Entrega: {{
+            pedido.endereco_entrega | truncate(60, True) }}
+          </div>
+        </div>
+
+        <h6 class="fw-bold mb-1 mt-3" style="color: var(--purple-light)">
+          Itens:
+        </h6>
+        <ul class="list-group list-group-flush small mb-3">
+          {% for item in pedido.itens %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ item.quantidade }}x {{ item.produto.nome }}</span>
+            <span class="fw-bold"
+              >R$ {{ "%.2f"|format(item.preco_unitario_na_compra) }}</span
+            >
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div class="mb-3">
+          <small class="text-muted"
+            >PIN de Segurança:
+            <strong class="text-danger">{{ pedido.delivery_pin }}</strong>
+            (Confirme com o cliente)</small
+          >
+        </div>
+
+        {% if pedido.status in status_fluxo and pedido.status != 'Concluído' %}
+        <hr />
+        <div class="d-flex align-items-center gap-3 mt-3">
+          {% if pedido.status == 'Em Rota de Entrega' %}
+          <form
+            method="POST"
+            action="{{ url_for('restaurant.manage_orders') }}"
+            class="flex-grow-1"
+          >
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="pedido_id" value="{{ pedido.id }}" />
+            <input type="hidden" name="acao" value="validar_entrega" />
+
+            <label class="small fw-bold text-primary mb-1"
+              >Confirmar Entrega:</label
+            >
+            <div class="input-group">
+              <input
+                type="text"
+                name="delivery_pin"
+                class="form-control"
+                placeholder="Digite o código PIN do cliente"
+                required
+                maxlength="4"
+              />
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Concluir
+              </button>
+            </div>
+          </form>
+
+          {% else %}
+          <form
+            method="POST"
+            action="{{ url_for('restaurant.manage_orders') }}"
+            class="flex-grow-1"
+          >
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="pedido_id" value="{{ pedido.id }}" />
+            <input type="hidden" name="acao" value="avancar" />
+
+            {% set current_index = status_fluxo.index(pedido.status) %} {% set
+            next_status = status_fluxo[current_index + 1] %}
+
+            <p class="small mb-1 text-muted">
+              Próximo passo:
+              <span class="fw-bold text-success">{{ next_status }}</span>
+            </p>
+            <button
+              type="submit"
+              class="btn btn-purple w-100"
+              style="background-color: var(--purple-dark)"
+            >
+              Avançar para {{ next_status }}
+            </button>
+          </form>
+          {% endif %}
+
+          <form
+            action="{{ url_for('restaurant.cancel_order', pedido_id=pedido.id) }}"
+            method="POST"
+            style="min-width: 100px"
+          >
+            <p class="small mb-1 text-muted">&nbsp;</p>
+            <button
+              type="submit"
+              class="btn btn-outline-danger w-100"
+              onclick="return confirm('Cancelar pedido?')"
+            >
+              <i class="fas fa-ban me-1"></i> Cancelar
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %} {% endif %}
+  </div>
 </div>
 {% endblock content %}
