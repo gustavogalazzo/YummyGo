@@ -767,3 +767,29 @@ def search():
                            query=query, 
                            restaurantes=todos_restaurantes_unicos,
                            produtos=produtos_encontrados)
+
+# --- ROTAS INSTITUCIONAIS ---
+
+@auth_bp.route('/sobre')
+def about():
+    return render_template('static_pages/about.html')
+
+@auth_bp.route('/carreiras')
+def careers():
+    return render_template('static_pages/careers.html')
+
+@auth_bp.route('/imprensa')
+def press():
+    return render_template('static_pages/press.html')
+
+@auth_bp.route('/ajuda')
+def help_center():
+    return render_template('static_pages/help.html')
+
+@auth_bp.route('/contato')
+def contact():
+    return render_template('static_pages/contact.html')
+
+@auth_bp.route('/termos')
+def terms():
+    return render_template('static_pages/terms.html')

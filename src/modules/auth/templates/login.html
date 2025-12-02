@@ -1,29 +1,32 @@
 {% extends "base.html" %} {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-6">
+  <div class="col-md-5">
     <div
       class="card shadow-lg p-4"
       style="border: 2px solid var(--purple-light)"
     >
-      <h2 class="card-title text-center mb-4" style="color: var(--purple-dark)">
-        Aceder à Sua Conta
-      </h2>
+      <div class="text-center mb-4">
+        <h2 class="card-title fw-bold" style="color: var(--purple-dark)">
+          Bem-vindo de volta!
+        </h2>
+        <p class="text-muted">Faça login para pedir sua comida favorita.</p>
+      </div>
 
       <form method="POST" action="">
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
-          {{ form.login.label(class="form-label") }} {{
-          form.login(class="form-control", placeholder="E-mail ou Telefone") }}
-          {% for error in form.login.errors %}
+          {{ form.login.label(class="form-label fw-bold") }} {{
+          form.login(class="form-control form-control-lg", placeholder="E-mail
+          ou Telefone") }} {% for error in form.login.errors %}
           <div class="text-danger small">{{ error }}</div>
           {% endfor %}
         </div>
 
         <div class="mb-3">
-          {{ form.password.label(class="form-label") }} {{
-          form.password(class="form-control", placeholder="Senha") }} {% for
-          error in form.password.errors %}
+          {{ form.password.label(class="form-label fw-bold") }} {{
+          form.password(class="form-control form-control-lg", placeholder="Sua
+          senha") }} {% for error in form.password.errors %}
           <div class="text-danger small">{{ error }}</div>
           {% endfor %}
         </div>
@@ -39,29 +42,47 @@
         </div>
       </form>
 
-      <hr class="my-3" />
+      <div class="text-center my-3 text-muted">- OU -</div>
 
       <div class="d-grid gap-2">
         <a
           href="{{ url_for('auth.google_login') }}"
           class="btn btn-outline-danger"
-          >Entrar com Google</a
         >
+          <i class="fab fa-google me-2"></i> Entrar com Google
+        </a>
         <a
           href="{{ url_for('auth.facebook_login') }}"
           class="btn btn-outline-primary"
-          >Entrar com Facebook</a
         >
-        <a href="{{ url_for('auth.email_login') }}" class="btn btn-outline-dark"
-          >Entrar com código por E-mail</a
-        >
-        <a href="{{ url_for('auth.phone_login') }}" class="btn btn-outline-dark"
-          >Entrar com código por SMS</a
-        >
+          <i class="fab fa-facebook-f me-2"></i> Entrar com Facebook
+        </a>
+        <div class="row g-2">
+          <div class="col-6">
+            <a
+              href="{{ url_for('auth.email_login') }}"
+              class="btn btn-outline-secondary w-100 btn-sm"
+              >Via Código E-mail</a
+            >
+          </div>
+          <div class="col-6">
+            <a
+              href="{{ url_for('auth.phone_login') }}"
+              class="btn btn-outline-secondary w-100 btn-sm"
+              >Via Código SMS</a
+            >
+          </div>
+        </div>
       </div>
 
-      <p class="text-center mt-3">
-        Não tem uma conta? <a href="{{ url_for('auth.register') }}">Registo</a>.
+      <p class="text-center mt-4">
+        Não tem uma conta?
+        <a
+          href="{{ url_for('auth.register') }}"
+          class="fw-bold"
+          style="color: var(--purple-light)"
+          >Crie uma aqui</a
+        >.
       </p>
     </div>
   </div>

@@ -1,0 +1,52 @@
+{% extends "base.html" %} {% block content %}
+<div class="text-center py-5">
+  <h1 class="display-4 fw-bold" style="color: var(--purple-dark)">
+    Sala de Imprensa
+  </h1>
+  <p class="lead">Notícias, recursos de marca e contactos de media.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-8">
+    <h3 class="mb-3">Últimas Notícias</h3>
+    <div class="card mb-3 border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="fw-bold">YummyGo lança funcionalidade de Gamificação</h5>
+        <p class="text-muted small">02 Dezembro, 2025</p>
+        <p>
+          A plataforma inova ao trazer níveis e recompensas para clientes
+          fiéis...
+        </p>
+        <a href="#" class="text-purple">Ler mais</a>
+      </div>
+    </div>
+    <div class="card mb-3 border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="fw-bold">Expansão para novas cidades</h5>
+        <p class="text-muted small">15 Novembro, 2025</p>
+        <p>
+          YummyGo chega a mais 5 capitais brasileiras com foco em restaurantes
+          locais...
+        </p>
+        <a href="#" class="text-purple">Ler mais</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card bg-light border-0 p-3">
+      <h5 class="fw-bold mb-3">Kit de Imprensa</h5>
+      <p>Baixe nossos logos e assets oficiais.</p>
+      <button class="btn btn-outline-dark w-100 mb-2">
+        <i class="fas fa-download me-2"></i> Download Logos
+      </button>
+      <button class="btn btn-outline-dark w-100">
+        <i class="fas fa-image me-2"></i> Fotos Institucionais
+      </button>
+
+      <h5 class="fw-bold mt-4 mb-3">Contato de Media</h5>
+      <p class="small">press@yummygo.com</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

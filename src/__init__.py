@@ -75,5 +75,11 @@ def create_app(config_class=Config):
     app.register_blueprint(restaurant_bp, url_prefix='/portal')
     # app.register_blueprint(order_bp, url_prefix='/pedido')
 
+    # Tratamento de Erro 404
+    from flask import render_template
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
+
     # 5. Retorna a App pronta
     return app

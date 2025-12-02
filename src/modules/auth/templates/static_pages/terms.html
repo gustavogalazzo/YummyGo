@@ -1,0 +1,37 @@
+{% extends "base.html" %} {% block content %}
+<div class="container bg-white p-5 shadow-sm rounded">
+  <h1 class="mb-4" style="color: var(--purple-dark)">Termos de Uso</h1>
+  <p class="text-muted">Última atualização: Dezembro de 2025</p>
+  <hr />
+
+  <h3>1. Aceitação dos Termos</h3>
+  <p>
+    Ao acessar e usar o YummyGo, você aceita e concorda em estar vinculado aos
+    termos e disposições deste acordo...
+  </p>
+
+  <h3>2. Uso do Serviço</h3>
+  <p>
+    O YummyGo fornece uma plataforma para conectar clientes a restaurantes
+    parceiros. Nós não preparamos a comida...
+  </p>
+
+  <h3>3. Pagamentos</h3>
+  <p>
+    Todos os pagamentos são processados de forma segura através da plataforma
+    Stripe. Não armazenamos dados de cartão de crédito...
+  </p>
+
+  <h3>4. Cancelamento</h3>
+  <p>
+    Pedidos podem ser cancelados pelo restaurante em casos de força maior. O
+    reembolso será processado automaticamente...
+  </p>
+
+  <div class="mt-5">
+    <a href="{{ url_for('auth.home') }}" class="btn btn-outline-secondary"
+      >Voltar ao Início</a
+    >
+  </div>
+</div>
+{% endblock %}

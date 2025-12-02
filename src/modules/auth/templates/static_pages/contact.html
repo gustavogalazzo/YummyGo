@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-white p-4 text-center">
+        <h2 class="fw-bold" style="color: var(--purple-dark)">Fale Conosco</h2>
+        <p class="text-muted mb-0">Estamos aqui para ouvir você.</p>
+      </div>
+      <div class="card-body p-4">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Seu Nome</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Nome completo"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">E-mail</label>
+            <input
+              type="email"
+              class="form-control"
+              placeholder="seu@email.com"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Assunto</label>
+            <select class="form-select">
+              <option>Suporte ao Pedido</option>
+              <option>Parceria / Restaurantes</option>
+              <option>Outros</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mensagem</label>
+            <textarea
+              class="form-control"
+              rows="5"
+              placeholder="Como podemos ajudar?"
+            ></textarea>
+          </div>
+          <div class="d-grid">
+            <button
+              type="button"
+              class="btn btn-purple btn-lg fw-bold"
+              style="background-color: var(--purple-light); color: white"
+              onclick="alert('Mensagem enviada com sucesso! Entraremos em contato em breve.')"
+            >
+              Enviar Mensagem
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <p class="text-muted">
+        <i class="fas fa-envelope me-2"></i> suporte@yummygo.com
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

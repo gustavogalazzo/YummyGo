@@ -2,70 +2,103 @@
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <h2 class="display-5 fw-bold mb-4" style="color: var(--purple-dark)">
-      Informações do Estabelecimento
+      <i class="fas fa-store me-2"></i> Configurações da Loja
     </h2>
 
-    <div class="card shadow-sm p-4">
-      {% if restaurante.logo_url %}
-      <div class="text-center mb-4">
-        <img
-          src="{{ restaurante.logo_url }}"
-          alt="Logo Atual"
-          class="rounded-circle shadow-sm"
-          style="
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border: 4px solid var(--purple-light);
-          "
-        />
-        <p class="text-muted small mt-2">Logo Atual</p>
+    <div class="card shadow-lg border-0">
+      <div class="card-body p-5">
+        <div class="text-center mb-5">
+          {% if restaurante.logo_url %}
+          <img
+            src="{{ restaurante.logo_url }}"
+            alt="Logo Atual"
+            class="rounded-circle shadow"
+            style="
+              width: 150px;
+              height: 150px;
+              object-fit: cover;
+              border: 5px solid var(--purple-light);
+            "
+          />
+          <p class="text-muted mt-2 mb-0">
+            <i class="fas fa-check-circle text-success"></i> Logo ativa
+          </p>
+          {% else %}
+          <div
+            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center shadow-sm"
+            style="width: 150px; height: 150px; border: 5px solid #eee"
+          >
+            <i class="fas fa-image fa-4x text-muted"></i>
+          </div>
+          <p class="text-muted mt-2 mb-0">Sem logo definida</p>
+          {% endif %}
+        </div>
+
+        <form method="POST" action="" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-4">
+            <label class="form-label fw-bold text-purple-dark"
+              >Nome do Estabelecimento</label
+            >
+            {{ form.nome_fantasia(class="form-control form-control-lg") }} {%
+            for error in form.nome_fantasia.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">CNPJ</label>
+              {{ form.cnpj(class="form-control") }} {% for error in
+              form.cnpj.errors %}
+              <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-primary"
+                ><i class="fas fa-cloud-upload-alt"></i> Alterar
+                Logomarca</label
+              >
+              {{ form.logo(class="form-control") }}
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Taxa de Entrega (R$)</label>
+              <div class="input-group">
+                <span class="input-group-text">R$</span>
+                {{ form.taxa_entrega(class="form-control", type="number",
+                step="0.01") }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Tempo de Entrega (min)</label>
+              <div class="input-group">
+                {{ form.tempo_medio_entrega(class="form-control", type="number")
+                }}
+                <span class="input-group-text">min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid mt-5">
+            {{ form.submit(class="btn btn-purple btn-lg fw-bold",
+            style="background-color: var(--purple-dark);") }}
+          </div>
+        </form>
+
+        <div class="text-center mt-4">
+          <a
+            href="{{ url_for('restaurant.dashboard') }}"
+            class="text-decoration-none text-muted"
+          >
+            <i class="fas fa-arrow-left"></i> Voltar ao Painel
+          </a>
+        </div>
       </div>
-      {% endif %}
-
-      <hr />
-
-      <form method="POST" action="" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-
-        <div class="mb-3">
-          {{ form.nome_fantasia.label(class="form-label") }} {{
-          form.nome_fantasia(class="form-control") }}
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ form.cnpj.label(class="form-label") }} {{
-            form.cnpj(class="form-control") }}
-          </div>
-
-          <div class="col-md-6 mb-3">
-            {{ form.logo.label(class="form-label") }} {{
-            form.logo(class="form-control") }}
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ form.taxa_entrega.label(class="form-label") }} {{
-            form.taxa_entrega(class="form-control", type="number", step="0.01")
-            }}
-          </div>
-          <div class="col-md-6 mb-3">
-            {{ form.tempo_medio_entrega.label(class="form-label") }} {{
-            form.tempo_medio_entrega(class="form-control", type="number") }}
-          </div>
-        </div>
-
-        <div class="d-grid mt-4">
-          {{ form.submit(class="btn btn-purple btn-lg", style="background-color:
-          var(--purple-dark);") }}
-        </div>
-      </form>
-
-      <p class="text-center mt-3">
-        <a href="{{ url_for('restaurant.dashboard') }}">← Voltar ao Portal</a>
-      </p>
     </div>
   </div>
 </div>
